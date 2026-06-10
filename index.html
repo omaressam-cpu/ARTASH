@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>بيلد فاينانس</title>
+  <meta name="description" content="نظام تتبع مالي وفواتير لشركات المقاولات" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="بيلد فاينانس" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="icon" type="image/png" href="icons/icon-192.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f1a;
+      --bg2: #1a1a2e;
+      --bg3: #16213e;
+      --surface: #1e1e35;
+      --surface2: #252540;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.15);
+      --text: #f0f0ff;
+      --text2: #9999bb;
+      --text3: #6666aa;
+      --accent: #e8b84b;
+      --accent2: #c9973a;
+      --green: #2ecc8a;
+      --green-bg: rgba(46,204,138,0.12);
+      --red: #e85555;
+      --red-bg: rgba(232,85,85,0.12);
+      --amber: #e8b84b;
+      --amber-bg: rgba(232,184,75,0.12);
+      --blue: #5b8dee;
+      --blue-bg: rgba(91,141,238,0.12);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Cairo', -apple-system, sans-serif; font-size: 15px; line-height: 1.6; }
+
+    #app { display: flex; flex-direction: column; height: 100%; max-width: 900px; margin: 0 auto; }
+
+    header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 1.25rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 50; }
+    .logo { font-size: 18px; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .logo svg { width: 22px; height: 22px; }
+    .sync-badge { font-size: 12px; color: var(--green); background: var(--green-bg); padding: 3px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
+    .sync-badge.saving { color: var(--amber); background: var(--amber-bg); }
+
+    nav { background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; padding: 0 1rem; overflow-x: auto; gap: 4px; scrollbar-width: none; }
+    nav::-webkit-scrollbar { display: none; }
+    nav button { padding: 12px 14px; border: none; background: transparent; color: var(--text2); cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.15s; display: flex; align-items: center; gap: 6px; font-family: 'Cairo', sans-serif; }
+    nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+    nav button svg { width: 16px; height: 16px; }
+
+    main { flex: 1; overflow-y: auto; padding: 1.25rem; }
+
+    .section { display: none; }
+    .section.visible { display: block; }
+
+    .metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 1.25rem; }
+    @media (min-width: 600px) { .metrics { grid-template-columns: repeat(4, 1fr); } }
+    .metric { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+    .metric-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; font-weight: 600; }
+    .metric-value { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+    .metric-sub { font-size: 11px; color: var(--text3); }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .card-title { font-size: 15px; font-weight: 700; }
+
+    .btn { padding: 9px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--surface2); color: var(--text); cursor: pointer; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; font-family: 'Cairo', sans-serif; }
+    .btn:hover { background: var(--bg3); border-color: var(--accent); color: var(--accent); }
+    .btn-accent { background: var(--accent); border-color: var(--accent); color: #1a1a2e; font-weight: 700; }
+    .btn-accent:hover { background: var(--accent2); border-color: var(--accent2); color: #1a1a2e; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-danger { border-color: rgba(232,85,85,0.3); color: var(--red); background: transparent; }
+    .btn-danger:hover { background: var(--red-bg); border-color: var(--red); }
+    .btn-success { border-color: rgba(46,204,138,0.3); color: var(--green); background: transparent; }
+    .btn-success:hover { background: var(--green-bg); border-color: var(--green); }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text3); font-weight: 600; font-size: 12px; white-space: nowrap; font-family: 'Cairo', sans-serif; }
+    td { padding: 11px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; text-align: right; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .badge-paid { background: var(--green-bg); color: var(--green); }
+    .badge-pending { background: var(--amber-bg); color: var(--amber); }
+    .badge-overdue { background: var(--red-bg); color: var(--red); }
+    .badge-active { background: var(--blue-bg); color: var(--blue); }
+    .badge-completed { background: var(--green-bg); color: var(--green); }
+    .badge-hold { background: rgba(150,150,150,0.15); color: #999; }
+
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); }
+    .modal-overlay.open { display: flex; }
+    @media (min-width: 600px) { .modal-overlay { align-items: center; } }
+    .modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius) var(--radius) 0 0; padding: 1.5rem; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+    @media (min-width: 600px) { .modal { border-radius: var(--radius); } }
+    .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 1.25rem; color: var(--accent); }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-start; margin-top: 1.25rem; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 12px; color: var(--text2); font-weight: 600; }
+    input, select, textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border2); border-radius: var(--radius-sm); font-size: 14px; background: var(--surface); color: var(--text); outline: none; transition: border 0.15s; font-family: 'Cairo', sans-serif; text-align: right; direction: rtl; }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 70px; }
+    select option { background: var(--bg2); }
+
+    .activity-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .activity-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+    .progress-bg { background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; margin-top: 8px; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+
+    .project-item { border-bottom: 1px solid var(--border); padding: 14px 0; }
+    .project-item:last-child { border-bottom: none; }
+    .project-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 10px 0 8px; }
+    .pstat-label { font-size: 11px; color: var(--text3); }
+    .pstat-val { font-size: 13px; font-weight: 700; margin-top: 2px; }
+
+    .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--text3); font-size: 14px; }
+    .empty-state svg { width: 40px; height: 40px; margin: 0 auto 12px; display: block; opacity: 0.4; }
+    .error-msg { background: var(--red-bg); border: 1px solid rgba(232,85,85,0.3); color: var(--red); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 13px; margin-bottom: 12px; }
+
+    #install-banner { display: none; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 1rem; align-items: center; justify-content: space-between; gap: 12px; }
+    #install-banner.show { display: flex; }
+    .install-text { font-size: 13px; color: var(--text2); }
+    .install-text strong { color: var(--text); display: block; margin-bottom: 2px; }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      بيلد فاينانس
+    </div>
+    <div class="sync-badge" id="sync-status">
+      <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>
+      محفوظ
+    </div>
+  </header>
+
+  <nav>
+    <button class="active" onclick="showTab('dashboard', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      الرئيسية
+    </button>
+    <button onclick="showTab('invoices', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      الفواتير
+    </button>
+    <button onclick="showTab('expenses', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      المصروفات
+    </button>
+    <button onclick="showTab('projects', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      المشاريع
+    </button>
+  </nav>
+
+  <main>
+
+    <!-- الرئيسية -->
+    <div id="tab-dashboard" class="section visible">
+      <div id="install-banner">
+        <div class="install-text"><strong>تثبيت التطبيق</strong>اضغط لإضافته إلى الشاشة الرئيسية</div>
+        <button class="btn btn-accent btn-sm" id="install-btn">تثبيت</button>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">إجمالي الفواتير</div>
+          <div class="metric-value" id="m-invoiced" style="color:var(--blue)">—</div>
+          <div class="metric-sub">جميع الفواتير</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">المحصّل</div>
+          <div class="metric-value" id="m-collected" style="color:var(--green)">—</div>
+          <div class="metric-sub">فواتير مدفوعة</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">المعلّق</div>
+          <div class="metric-value" id="m-pending" style="color:var(--amber)">—</div>
+          <div class="metric-sub">في انتظار السداد</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">المصروفات</div>
+          <div class="metric-value" id="m-expenses" style="color:var(--red)">—</div>
+          <div class="metric-sub">إجمالي الإنفاق</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">آخر النشاطات</span></div>
+        <div id="recent-list"></div>
+      </div>
+    </div>
+
+    <!-- الفواتير -->
+    <div id="tab-invoices" class="section">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">الفواتير</span>
+          <button class="btn btn-accent" onclick="openModal('invoice')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            فاتورة جديدة
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>رقم الفاتورة</th><th>العميل</th><th>المبلغ</th><th>تاريخ الاستحقاق</th><th>الحالة</th><th></th></tr></thead>
+            <tbody id="invoice-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- المصروفات -->
+    <div id="tab-expenses" class="section">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">المصروفات</span>
+          <button class="btn btn-accent" onclick="openModal('expense')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            إضافة مصروف
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>التاريخ</th><th>الوصف</th><th>الفئة</th><th>المشروع</th><th>المبلغ</th><th></th></tr></thead>
+            <tbody id="expense-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- المشاريع -->
+    <div id="tab-projects" class="section">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">المشاريع</span>
+          <button class="btn btn-accent" onclick="openModal('project')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            مشروع جديد
+          </button>
+        </div>
+        <div id="project-list"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- نموذج الفاتورة -->
+<div class="modal-overlay" id="modal-invoice">
+  <div class="modal">
+    <div class="modal-title">فاتورة جديدة</div>
+    <div id="inv-err"></div>
+    <div class="form-grid">
+      <div class="form-group"><label>اسم العميل *</label><input id="inv-client" placeholder="مثال: مجموعة المنصور" /></div>
+      <div class="form-group"><label>رقم الفاتورة *</label><input id="inv-num" placeholder="INV-001" /></div>
+      <div class="form-group full"><label>المشروع</label><input id="inv-project" placeholder="اسم المشروع" /></div>
+      <div class="form-group"><label>المبلغ (جنيه) *</label><input id="inv-amount" type="number" placeholder="0" /></div>
+      <div class="form-group"><label>تاريخ الإصدار</label><input id="inv-issue" type="date" /></div>
+      <div class="form-group full"><label>تاريخ الاستحقاق *</label><input id="inv-due" type="date" /></div>
+      <div class="form-group full"><label>ملاحظات</label><textarea id="inv-notes" placeholder="ملاحظات اختيارية…"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" onclick="saveInvoice()">حفظ الفاتورة</button>
+      <button class="btn" onclick="closeModal('invoice')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- نموذج المصروف -->
+<div class="modal-overlay" id="modal-expense">
+  <div class="modal">
+    <div class="modal-title">إضافة مصروف</div>
+    <div id="exp-err"></div>
+    <div class="form-grid">
+      <div class="form-group full"><label>الوصف *</label><input id="exp-desc" placeholder="مثال: شراء أكياس أسمنت" /></div>
+      <div class="form-group"><label>المبلغ (جنيه) *</label><input id="exp-amount" type="number" placeholder="0" /></div>
+      <div class="form-group"><label>التاريخ *</label><input id="exp-date" type="date" /></div>
+      <div class="form-group"><label>الفئة</label>
+        <select id="exp-cat">
+          <option value="مواد">مواد</option>
+          <option value="عمالة">عمالة</option>
+          <option value="معدات">معدات</option>
+          <option value="نقل">نقل</option>
+          <option value="تصاريح">تصاريح</option>
+          <option value="أخرى">أخرى</option>
+        </select>
+      </div>
+      <div class="form-group"><label>المشروع</label><input id="exp-project" placeholder="اسم المشروع" /></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" onclick="saveExpense()">حفظ المصروف</button>
+      <button class="btn" onclick="closeModal('expense')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- نموذج المشروع -->
+<div class="modal-overlay" id="modal-project">
+  <div class="modal">
+    <div class="modal-title">مشروع جديد</div>
+    <div id="prj-err"></div>
+    <div class="form-grid">
+      <div class="form-group full"><label>اسم المشروع *</label><input id="prj-name" placeholder="مثال: فيلا القاهرة الجديدة #12" /></div>
+      <div class="form-group"><label>العميل</label><input id="prj-client" placeholder="اسم العميل" /></div>
+      <div class="form-group"><label>الميزانية (جنيه)</label><input id="prj-budget" type="number" placeholder="0" /></div>
+      <div class="form-group"><label>تاريخ البدء</label><input id="prj-start" type="date" /></div>
+      <div class="form-group full"><label>الحالة</label>
+        <select id="prj-status">
+          <option value="نشط">نشط</option>
+          <option value="مكتمل">مكتمل</option>
+          <option value="متوقف">متوقف</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" onclick="saveProject()">حفظ المشروع</button>
+      <button class="btn" onclick="closeModal('project')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let state = { invoices: [], expenses: [], projects: [] };
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('install-banner').classList.add('show');
+  });
+  document.getElementById('install-btn')?.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') document.getElementById('install-banner').classList.remove('show');
+    deferredPrompt = null;
+  });
+
+  function fmt(n) { return Number(n).toLocaleString('ar-EG') + ' ج.م'; }
+  function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d + 'T00:00:00').toLocaleDateString('ar-EG', { day:'2-digit', month:'short', year:'numeric' });
+  }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function today() { return new Date().toISOString().split('T')[0]; }
+
+  function showTab(tab, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('visible');
+    btn.classList.add('active');
+  }
+
+  function openModal(type) {
+    document.getElementById('modal-' + type).classList.add('open');
+    if (type === 'invoice') { document.getElementById('inv-issue').value = today(); document.getElementById('inv-err').innerHTML = ''; }
+    if (type === 'expense') { document.getElementById('exp-date').value = today(); document.getElementById('exp-err').innerHTML = ''; }
+    if (type === 'project') { document.getElementById('prj-start').value = today(); document.getElementById('prj-err').innerHTML = ''; }
+  }
+  function closeModal(type) { document.getElementById('modal-' + type).classList.remove('open'); }
+
+  function loadData() {
+    try {
+      const saved = localStorage.getItem('buildfinance_data_ar');
+      if (saved) state = JSON.parse(saved);
+    } catch(e) {}
+    renderAll();
+  }
+
+  function persist() {
+    setSyncing(true);
+    try { localStorage.setItem('buildfinance_data_ar', JSON.stringify(state)); } catch(e) {}
+    setTimeout(() => setSyncing(false), 600);
+  }
+
+  function setSyncing(s) {
+    const el = document.getElementById('sync-status');
+    el.className = 'sync-badge' + (s ? ' saving' : '');
+    el.innerHTML = s
+      ? '<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg> جارٍ الحفظ…'
+      : '<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg> محفوظ';
+  }
+
+  function invoiceStatus(inv) {
+    if (inv.paid) return { key: 'paid', label: 'مدفوعة' };
+    if (inv.due && new Date(inv.due) < new Date()) return { key: 'overdue', label: 'متأخرة' };
+    return { key: 'pending', label: 'معلّقة' };
+  }
+
+  function renderDashboard() {
+    const totalInv = state.invoices.reduce((s, i) => s + Number(i.amount), 0);
+    const collected = state.invoices.filter(i => i.paid).reduce((s, i) => s + Number(i.amount), 0);
+    const pending = state.invoices.filter(i => !i.paid).reduce((s, i) => s + Number(i.amount), 0);
+    const totalExp = state.expenses.reduce((s, e) => s + Number(e.amount), 0);
+    document.getElementById('m-invoiced').textContent = fmt(totalInv);
+    document.getElementById('m-collected').textContent = fmt(collected);
+    document.getElementById('m-pending').textContent = fmt(pending);
+    document.getElementById('m-expenses').textContent = fmt(totalExp);
+
+    const combined = [
+      ...state.invoices.map(i => ({ date: i.issue || i.due, text: `فاتورة ${i.num} — ${i.client}`, amt: i.amount, type: 'income' })),
+      ...state.expenses.map(e => ({ date: e.date, text: `${e.category}: ${e.desc}`, amt: e.amount, type: 'expense' }))
+    ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8);
+
+    const el = document.getElementById('recent-list');
+    if (!combined.length) {
+      el.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 17H7A5 5 0 017 7h1M15 7h1a5 5 0 010 10h-1M9 12h6"/></svg>لا توجد نشاطات بعد. أضف فواتير أو مصروفات للبدء.</div>`;
+      return;
+    }
+    el.innerHTML = combined.map(a => `
+      <div class="activity-item">
+        <span style="font-size:13px;font-weight:700;color:${a.type==='income'?'var(--green)':'var(--red)'}">${a.type==='income'?'+':'-'}${fmt(a.amt)}</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div>
+            <div style="font-size:13px;text-align:right">${a.text}</div>
+            <div class="activity-meta" style="text-align:right">${fmtDate(a.date)}</div>
+          </div>
+          <div class="activity-dot" style="background:${a.type==='income'?'var(--green)':'var(--red)'}"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderInvoices() {
+    const tb = document.getElementById('invoice-table');
+    if (!state.invoices.length) {
+      tb.innerHTML = `<tr><td colspan="6"><div class="empty-state">لا توجد فواتير بعد.</div></td></tr>`;
+      return;
+    }
+    tb.innerHTML = state.invoices.slice().reverse().map(i => {
+      const st = invoiceStatus(i);
+      return `<tr>
+        <td style="font-weight:700;color:var(--accent)">${i.num}</td>
+        <td>${i.client}${i.project ? `<div style="font-size:11px;color:var(--text3)">${i.project}</div>` : ''}</td>
+        <td style="font-weight:700">${fmt(i.amount)}</td>
+        <td style="color:var(--text2)">${fmtDate(i.due)}</td>
+        <td><span class="badge badge-${st.key}">${st.label}</span></td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+          ${!i.paid ? `<button class="btn btn-sm btn-success" onclick="markPaid('${i.id}')">✓ مدفوعة</button>` : ''}
+          <button class="btn btn-sm btn-danger" onclick="deleteItem('invoices','${i.id}')">حذف</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderExpenses() {
+    const tb = document.getElementById('expense-table');
+    if (!state.expenses.length) {
+      tb.innerHTML = `<tr><td colspan="6"><div class="empty-state">لا توجد مصروفات بعد.</div></td></tr>`;
+      return;
+    }
+    tb.innerHTML = state.expenses.slice().reverse().map(e => `
+      <tr>
+        <td style="color:var(--text2)">${fmtDate(e.date)}</td>
+        <td>${e.desc}</td>
+        <td><span class="badge" style="background:var(--blue-bg);color:var(--blue)">${e.category}</span></td>
+        <td style="color:var(--text2)">${e.project || '—'}</td>
+        <td style="font-weight:700;color:var(--red)">${fmt(e.amount)}</td>
+        <td><button class="btn btn-sm btn-danger" onclick="deleteItem('expenses','${e.id}')">حذف</button></td>
+      </tr>
+    `).join('');
+  }
+
+  function renderProjects() {
+    const el = document.getElementById('project-list');
+    if (!state.projects.length) {
+      el.innerHTML = `<div class="empty-state">لا توجد مشاريع بعد.</div>`;
+      return;
+    }
+    const stMap = { 'نشط': 'badge-active', 'مكتمل': 'badge-completed', 'متوقف': 'badge-hold' };
+    el.innerHTML = state.projects.slice().reverse().map(p => {
+      const pinv = state.invoices.filter(i => i.project === p.name).reduce((s, i) => s + Number(i.amount), 0);
+      const pexp = state.expenses.filter(e => e.project === p.name).reduce((s, e) => s + Number(e.amount), 0);
+      const pct = p.budget > 0 ? Math.min(100, Math.round(pexp / p.budget * 100)) : 0;
+      return `<div class="project-item">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge ${stMap[p.status]||'badge-hold'}">${p.status}</span>
+            <button class="btn btn-sm btn-danger" onclick="deleteItem('projects','${p.id}')">حذف</button>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:15px;font-weight:700">${p.name}</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">${p.client || 'بدون عميل'} · ${fmtDate(p.start)}</div>
+          </div>
+        </div>
+        <div class="project-stats">
+          <div style="text-align:right"><div class="pstat-label">المنفق</div><div class="pstat-val" style="color:var(--red)">${fmt(pexp)}</div></div>
+          <div style="text-align:right"><div class="pstat-label">الفواتير</div><div class="pstat-val" style="color:var(--green)">${fmt(pinv)}</div></div>
+          <div style="text-align:right"><div class="pstat-label">الميزانية</div><div class="pstat-val">${p.budget > 0 ? fmt(p.budget) : '—'}</div></div>
+        </div>
+        ${p.budget > 0 ? `
+          <div class="progress-bg"><div class="progress-fill" style="width:${pct}%;background:${pct>80?'var(--red)':'var(--green)'}"></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;text-align:right">${pct}% من الميزانية منفق</div>
+        ` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  function renderAll() { renderDashboard(); renderInvoices(); renderExpenses(); renderProjects(); }
+
+  function saveInvoice() {
+    const client = document.getElementById('inv-client').value.trim();
+    const num = document.getElementById('inv-num').value.trim();
+    const amount = document.getElementById('inv-amount').value;
+    const due = document.getElementById('inv-due').value;
+    if (!client || !num || !amount || !due) {
+      document.getElementById('inv-err').innerHTML = '<div class="error-msg">يرجى تعبئة اسم العميل ورقم الفاتورة والمبلغ وتاريخ الاستحقاق.</div>';
+      return;
+    }
+    state.invoices.push({ id: uid(), num, client, project: document.getElementById('inv-project').value.trim(), amount: Number(amount), issue: document.getElementById('inv-issue').value, due, notes: document.getElementById('inv-notes').value.trim(), paid: false });
+    persist(); renderAll(); closeModal('invoice');
+    ['inv-client','inv-num','inv-amount','inv-due','inv-project','inv-notes'].forEach(id => document.getElementById(id).value = '');
+  }
+
+  function saveExpense() {
+    const desc = document.getElementById('exp-desc').value.trim();
+    const amount = document.getElementById('exp-amount').value;
+    const date = document.getElementById('exp-date').value;
+    if (!desc || !amount || !date) {
+      document.getElementById('exp-err').innerHTML = '<div class="error-msg">يرجى تعبئة الوصف والمبلغ والتاريخ.</div>';
+      return;
+    }
+    state.expenses.push({ id: uid(), desc, amount: Number(amount), date, category: document.getElementById('exp-cat').value, project: document.getElementById('exp-project').value.trim() });
+    persist(); renderAll(); closeModal('expense');
+    ['exp-desc','exp-amount','exp-project'].forEach(id => document.getElementById(id).value = '');
+  }
+
+  function saveProject() {
+    const name = document.getElementById('prj-name').value.trim();
+    if (!name) {
+      document.getElementById('prj-err').innerHTML = '<div class="error-msg">يرجى إدخال اسم المشروع.</div>';
+      return;
+    }
+    state.projects.push({ id: uid(), name, client: document.getElementById('prj-client').value.trim(), budget: Number(document.getElementById('prj-budget').value) || 0, start: document.getElementById('prj-start').value, status: document.getElementById('prj-status').value });
+    persist(); renderAll(); closeModal('project');
+    ['prj-name','prj-client','prj-budget'].forEach(id => document.getElementById(id).value = '');
+  }
+
+  function markPaid(id) {
+    const inv = state.invoices.find(i => i.id === id);
+    if (inv) { inv.paid = true; persist(); renderAll(); }
+  }
+
+  function deleteItem(type, id) {
+    if (!confirm('هل تريد حذف هذا العنصر؟')) return;
+    state[type] = state[type].filter(i => i.id !== id);
+    persist(); renderAll();
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  loadData();
+</script>
+</body>
+</html>

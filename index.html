@@ -220,19 +220,19 @@
   </header>
 
   <nav>
-    <button class="active" onclick="showTab('dashboard', this)">
+    <button class="active" id="nav-dashboard" onclick="showTab('dashboard', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       الرئيسية
     </button>
-    <button onclick="showTab('invoices', this)">
+    <button id="nav-invoices" onclick="showTab('invoices', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       الفواتير
     </button>
-    <button onclick="showTab('expenses', this)">
+    <button id="nav-expenses" onclick="showTab('expenses', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
       المصروفات
     </button>
-    <button onclick="showTab('projects', this)">
+    <button id="nav-projects" onclick="showTab('projects', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
       المشاريع
     </button>
@@ -285,7 +285,7 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">الفواتير</span>
-          <button class="btn btn-accent" onclick="openModal('invoice')">
+          <button class="btn btn-accent" id="btn-new-invoice" onclick="openModal('invoice')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             فاتورة جديدة
           </button>
@@ -314,7 +314,7 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">المصروفات</span>
-          <button class="btn btn-accent" onclick="openModal('expense')">
+          <button class="btn btn-accent" id="btn-new-expense" onclick="openModal('expense')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             إضافة مصروف
           </button>
@@ -343,7 +343,7 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">المشاريع</span>
-          <button class="btn btn-accent" onclick="openModal('project')">
+          <button class="btn btn-accent" id="btn-new-project" onclick="openModal('project')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             مشروع جديد
           </button>
@@ -455,20 +455,40 @@
 
   let currentUser = null;
   let currentUserName = '';
+  let currentUserRole = 'accountant';   // admin | accountant | engineer (default: safest = view-only)
+  let currentUserProject = '';          // used for engineer role
+
+  const ROLE_LABELS = {
+    admin: 'مدير',
+    accountant: 'محاسب',
+    engineer: 'مهندس ميداني'
+  };
 
   // Auth state listener
   auth.onAuthStateChanged(async user => {
     if (user) {
       currentUser = user;
-      // Get user display name from Firestore users collection
+      // Get user profile (name, role, assignedProject) from Firestore users collection
       try {
         const doc = await db.collection('users').doc(user.uid).get();
-        currentUserName = doc.exists ? doc.data().name : user.email;
+        if (doc.exists) {
+          const d = doc.data();
+          currentUserName = d.name || user.email;
+          currentUserRole = d.role || 'accountant';
+          currentUserProject = d.assignedProject || '';
+        } else {
+          currentUserName = user.email;
+          currentUserRole = 'accountant';
+          currentUserProject = '';
+        }
       } catch(e) {
         currentUserName = user.email;
+        currentUserRole = 'accountant';
+        currentUserProject = '';
       }
-      document.getElementById('user-display').textContent = currentUserName;
+      document.getElementById('user-display').textContent = `${currentUserName} (${ROLE_LABELS[currentUserRole] || currentUserRole})`;
       document.getElementById('login-screen').classList.add('hidden');
+      applyRolePermissions();
       setupSync();
     } else {
       currentUser = null;
@@ -476,6 +496,37 @@
       document.getElementById('login-screen').classList.remove('hidden');
     }
   });
+
+  function applyRolePermissions() {
+    const isAdmin = currentUserRole === 'admin';
+    const isAccountant = currentUserRole === 'accountant';
+    const isEngineer = currentUserRole === 'engineer';
+
+    // Nav tabs
+    document.getElementById('nav-dashboard').style.display = isEngineer ? 'none' : '';
+    document.getElementById('nav-projects').style.display = isEngineer ? 'none' : '';
+
+    // Add/create buttons
+    const newInvoiceBtn = document.getElementById('btn-new-invoice');
+    const newExpenseBtn = document.getElementById('btn-new-expense');
+    const newProjectBtn = document.getElementById('btn-new-project');
+    if (newInvoiceBtn) newInvoiceBtn.style.display = isAccountant ? 'none' : '';
+    if (newExpenseBtn) newExpenseBtn.style.display = isAccountant ? 'none' : '';
+    if (newProjectBtn) newProjectBtn.style.display = (isAccountant || isEngineer) ? 'none' : '';
+
+    // For engineer: lock project field and land on invoices tab
+    if (isEngineer) {
+      const invProject = document.getElementById('inv-project');
+      const expProject = document.getElementById('exp-project');
+      if (invProject) { invProject.value = currentUserProject; invProject.readOnly = true; }
+      if (expProject) { expProject.value = currentUserProject; expProject.readOnly = true; }
+      // Land on invoices tab since dashboard is hidden
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-invoices').classList.add('visible');
+      document.getElementById('nav-invoices').classList.add('active');
+    }
+  }
 
   async function doLogin() {
     const email = document.getElementById('login-email').value.trim();
@@ -543,8 +594,16 @@
 
   function openModal(type) {
     document.getElementById('modal-' + type).classList.add('open');
-    if (type === 'invoice') { document.getElementById('inv-issue').value = today(); document.getElementById('inv-err').innerHTML = ''; }
-    if (type === 'expense') { document.getElementById('exp-date').value = today(); document.getElementById('exp-err').innerHTML = ''; }
+    if (type === 'invoice') {
+      document.getElementById('inv-issue').value = today();
+      document.getElementById('inv-err').innerHTML = '';
+      if (currentUserRole === 'engineer') document.getElementById('inv-project').value = currentUserProject;
+    }
+    if (type === 'expense') {
+      document.getElementById('exp-date').value = today();
+      document.getElementById('exp-err').innerHTML = '';
+      if (currentUserRole === 'engineer') document.getElementById('exp-project').value = currentUserProject;
+    }
     if (type === 'project') { document.getElementById('prj-start').value = today(); document.getElementById('prj-err').innerHTML = ''; }
   }
   function closeModal(type) { document.getElementById('modal-' + type).classList.remove('open'); }
@@ -633,11 +692,13 @@
     const tb = document.getElementById('invoice-table');
     const q = (document.getElementById('inv-search')?.value || '').trim().toLowerCase();
     let list = state.invoices.slice().reverse();
+    if (currentUserRole === 'engineer') list = list.filter(i => i.project === currentUserProject);
     if (q) list = list.filter(i => (i.num + ' ' + i.client + ' ' + (i.project||'')).toLowerCase().includes(q));
     if (!list.length) {
       tb.innerHTML = `<tr><td colspan="6"><div class="empty-state">${q ? 'لا توجد نتائج مطابقة.' : 'لا توجد فواتير بعد.'}</div></td></tr>`;
       return;
     }
+    const canEdit = currentUserRole !== 'accountant';
     tb.innerHTML = list.map(i => {
       const st = invoiceStatus(i);
       return `<tr>
@@ -648,8 +709,8 @@
         <td><span class="badge badge-${st.key}">${st.label}</span></td>
         <td style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
           <button class="btn btn-sm btn-pdf" onclick="exportSingleInvoicePDF('${i.id}')">PDF</button>
-          ${!i.paid ? `<button class="btn btn-sm btn-success" onclick="markPaid('${i.id}')">✓ مدفوعة</button>` : ''}
-          <button class="btn btn-sm btn-danger" onclick="deleteItem('invoices','${i.id}')">حذف</button>
+          ${canEdit && !i.paid ? `<button class="btn btn-sm btn-success" onclick="markPaid('${i.id}')">✓ مدفوعة</button>` : ''}
+          ${canEdit ? `<button class="btn btn-sm btn-danger" onclick="deleteItem('invoices','${i.id}')">حذف</button>` : ''}
         </td>
       </tr>`;
     }).join('');
@@ -659,11 +720,13 @@
     const tb = document.getElementById('expense-table');
     const q = (document.getElementById('exp-search')?.value || '').trim().toLowerCase();
     let list = state.expenses.slice().reverse();
+    if (currentUserRole === 'engineer') list = list.filter(e => e.project === currentUserProject);
     if (q) list = list.filter(e => (e.desc + ' ' + e.category + ' ' + (e.project||'')).toLowerCase().includes(q));
     if (!list.length) {
       tb.innerHTML = `<tr><td colspan="6"><div class="empty-state">${q ? 'لا توجد نتائج مطابقة.' : 'لا توجد مصروفات بعد.'}</div></td></tr>`;
       return;
     }
+    const canEdit = currentUserRole !== 'accountant';
     tb.innerHTML = list.map(e => `
       <tr>
         <td style="color:var(--text2)">${fmtDate(e.date)}</td>
@@ -671,7 +734,7 @@
         <td><span class="badge" style="background:var(--blue-bg);color:var(--blue)">${e.category}</span></td>
         <td style="color:var(--text2)">${e.project || '—'}</td>
         <td style="font-weight:700;color:var(--red)">${fmt(e.amount)}</td>
-        <td><button class="btn btn-sm btn-danger" onclick="deleteItem('expenses','${e.id}')">حذف</button></td>
+        <td>${canEdit ? `<button class="btn btn-sm btn-danger" onclick="deleteItem('expenses','${e.id}')">حذف</button>` : ''}</td>
       </tr>
     `).join('');
   }
@@ -686,6 +749,7 @@
       return;
     }
     const stMap = { 'نشط': 'badge-active', 'مكتمل': 'badge-completed', 'متوقف': 'badge-hold' };
+    const canEditProjects = currentUserRole === 'admin';
     el.innerHTML = list.map(p => {
       const pinv = state.invoices.filter(i => i.project === p.name).reduce((s, i) => s + Number(i.amount), 0);
       const pexp = state.expenses.filter(e => e.project === p.name).reduce((s, e) => s + Number(e.amount), 0);
@@ -694,7 +758,7 @@
         <div style="display:flex;justify-content:space-between;align-items:start">
           <div style="display:flex;align-items:center;gap:8px">
             <span class="badge ${stMap[p.status]||'badge-hold'}">${p.status}</span>
-            <button class="btn btn-sm btn-danger" onclick="deleteItem('projects','${p.id}')">حذف</button>
+            ${canEditProjects ? `<button class="btn btn-sm btn-danger" onclick="deleteItem('projects','${p.id}')">حذف</button>` : ''}
           </div>
           <div style="text-align:right">
             <div style="font-size:15px;font-weight:700">${p.name}</div>
@@ -789,6 +853,7 @@
   async function exportSingleInvoicePDF(id) {
     const inv = state.invoices.find(i => i.id === id);
     if (!inv) return;
+    if (currentUserRole === 'engineer' && inv.project !== currentUserProject) return;
     const st = invoiceStatus(inv);
     const stColors = { paid: '#2ecc8a', pending: '#e8b84b', overdue: '#e85555' };
 
@@ -814,12 +879,14 @@
   }
 
   async function exportInvoicesPDF() {
-    if (!state.invoices.length) { alert('لا توجد فواتير لتصديرها.'); return; }
+    let invoiceList = state.invoices.slice().reverse();
+    if (currentUserRole === 'engineer') invoiceList = invoiceList.filter(i => i.project === currentUserProject);
+    if (!invoiceList.length) { alert('لا توجد فواتير لتصديرها.'); return; }
     const stColors = { paid: '#2ecc8a', pending: '#e8b84b', overdue: '#e85555' };
     let totalInv = 0, totalPaid = 0;
 
     let rows = '';
-    state.invoices.slice().reverse().forEach(inv => {
+    invoiceList.forEach(inv => {
       const st = invoiceStatus(inv);
       totalInv += Number(inv.amount);
       if (inv.paid) totalPaid += Number(inv.amount);
@@ -853,10 +920,12 @@
   }
 
   async function exportExpensesPDF() {
-    if (!state.expenses.length) { alert('لا توجد مصروفات لتصديرها.'); return; }
+    let expenseList = state.expenses.slice().reverse();
+    if (currentUserRole === 'engineer') expenseList = expenseList.filter(e => e.project === currentUserProject);
+    if (!expenseList.length) { alert('لا توجد مصروفات لتصديرها.'); return; }
     let total = 0;
     let rows = '';
-    state.expenses.slice().reverse().forEach(e => {
+    expenseList.forEach(e => {
       total += Number(e.amount);
       rows += `<tr>
         <td style="padding:8px;border-bottom:1px solid #eee;color:#888;">${fmtDate(e.date)}</td>
@@ -954,9 +1023,12 @@
       document.getElementById('inv-err').innerHTML = '<div class="error-msg">يرجى تعبئة اسم العميل ورقم الفاتورة والمبلغ وتاريخ الاستحقاق.</div>';
       return;
     }
-    state.invoices.push({ id: uid(), num, client, project: document.getElementById('inv-project').value.trim(), amount: Number(amount), issue: document.getElementById('inv-issue').value, due, notes: document.getElementById('inv-notes').value.trim(), paid: false, createdBy: currentUserName, createdAt: new Date().toISOString() });
+    const projectVal = currentUserRole === 'engineer' ? currentUserProject : document.getElementById('inv-project').value.trim();
+    state.invoices.push({ id: uid(), num, client, project: projectVal, amount: Number(amount), issue: document.getElementById('inv-issue').value, due, notes: document.getElementById('inv-notes').value.trim(), paid: false, createdBy: currentUserName, createdAt: new Date().toISOString() });
     persist(); renderAll(); closeModal('invoice');
-    ['inv-client','inv-num','inv-amount','inv-due','inv-project','inv-notes'].forEach(id => document.getElementById(id).value = '');
+    const fieldsToClear = ['inv-client','inv-num','inv-amount','inv-due','inv-notes'];
+    if (currentUserRole !== 'engineer') fieldsToClear.push('inv-project');
+    fieldsToClear.forEach(id => document.getElementById(id).value = '');
   }
 
   function saveExpense() {
@@ -967,9 +1039,12 @@
       document.getElementById('exp-err').innerHTML = '<div class="error-msg">يرجى تعبئة الوصف والمبلغ والتاريخ.</div>';
       return;
     }
-    state.expenses.push({ id: uid(), desc, amount: Number(amount), date, category: document.getElementById('exp-cat').value, project: document.getElementById('exp-project').value.trim(), createdBy: currentUserName, createdAt: new Date().toISOString() });
+    const projectVal = currentUserRole === 'engineer' ? currentUserProject : document.getElementById('exp-project').value.trim();
+    state.expenses.push({ id: uid(), desc, amount: Number(amount), date, category: document.getElementById('exp-cat').value, project: projectVal, createdBy: currentUserName, createdAt: new Date().toISOString() });
     persist(); renderAll(); closeModal('expense');
-    ['exp-desc','exp-amount','exp-project'].forEach(id => document.getElementById(id).value = '');
+    const fieldsToClear = ['exp-desc','exp-amount'];
+    if (currentUserRole !== 'engineer') fieldsToClear.push('exp-project');
+    fieldsToClear.forEach(id => document.getElementById(id).value = '');
   }
 
   function saveProject() {
@@ -984,11 +1059,20 @@
   }
 
   function markPaid(id) {
+    if (currentUserRole === 'accountant') return;
     const inv = state.invoices.find(i => i.id === id);
-    if (inv) { inv.paid = true; inv.paidBy = currentUserName; inv.paidAt = new Date().toISOString(); persist(); renderAll(); }
+    if (!inv) return;
+    if (currentUserRole === 'engineer' && inv.project !== currentUserProject) return;
+    inv.paid = true; inv.paidBy = currentUserName; inv.paidAt = new Date().toISOString(); persist(); renderAll();
   }
 
   function deleteItem(type, id) {
+    if (currentUserRole === 'accountant') return;
+    if (currentUserRole === 'engineer') {
+      if (type === 'projects') return;
+      const item = state[type].find(i => i.id === id);
+      if (!item || item.project !== currentUserProject) return;
+    }
     if (!confirm('هل تريد حذف هذا العنصر؟')) return;
     state[type] = state[type].filter(i => i.id !== id);
     persist(); renderAll();

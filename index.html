@@ -1149,6 +1149,7 @@
     XLSX.writeFile(wb, 'expenses-list.xlsx');
   }
 
+  async function exportSummaryPDF() {
     const totalInv = state.invoices.reduce((s, i) => s + Number(i.amount), 0);
     const collected = state.invoices.filter(i => i.paid).reduce((s, i) => s + Number(i.amount), 0);
     const pending = totalInv - collected;

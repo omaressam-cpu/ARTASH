@@ -1,4 +1,4 @@
-const CACHE_NAME = 'buildfinance-v1';
+const CACHE_NAME = 'artash-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -23,7 +23,21 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
+// Network-first for navigation/HTML requests so updates show immediately.
+// Falls back to cache only when offline.
 self.addEventListener('fetch', event => {
+  const isHTML = event.request.mode === 'navigate' || event.request.destination === 'document';
+  if (isHTML) {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        return response;
+      }).catch(() => caches.match(event.request).then(c => c || caches.match('/index.html')))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;

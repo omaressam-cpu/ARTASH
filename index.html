@@ -41,6 +41,29 @@
       --radius-sm: 8px;
     }
 
+    body.light-mode {
+      --bg: #f4f5fb;
+      --bg2: #ffffff;
+      --bg3: #eef0fa;
+      --surface: #ffffff;
+      --surface2: #f1f2f9;
+      --border: rgba(20,20,40,0.08);
+      --border2: rgba(20,20,40,0.15);
+      --text: #1a1a2e;
+      --text2: #5a5a7a;
+      --text3: #8888aa;
+      --accent: #b8842f;
+      --accent2: #96671f;
+      --green: #1f9d6c;
+      --green-bg: rgba(31,157,108,0.1);
+      --red: #d23f3f;
+      --red-bg: rgba(210,63,63,0.1);
+      --amber: #b8842f;
+      --amber-bg: rgba(184,132,47,0.1);
+      --blue: #3a6fd8;
+      --blue-bg: rgba(58,111,216,0.1);
+    }
+
     html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Cairo', -apple-system, sans-serif; font-size: 15px; line-height: 1.6; }
 
     #app { display: flex; flex-direction: column; height: 100%; max-width: 900px; margin: 0 auto; }
@@ -94,6 +117,7 @@
     .badge-paid { background: var(--green-bg); color: var(--green); }
     .badge-pending { background: var(--amber-bg); color: var(--amber); }
     .badge-overdue { background: var(--red-bg); color: var(--red); }
+    .badge-partial { background: var(--blue-bg); color: var(--blue); }
     .badge-active { background: var(--blue-bg); color: var(--blue); }
     .badge-completed { background: var(--green-bg); color: var(--green); }
     .badge-hold { background: rgba(150,150,150,0.15); color: #999; }
@@ -216,6 +240,10 @@
       محفوظ
     </div>
     <div class="user-bar">
+      <button class="btn-logout" id="theme-toggle-btn" onclick="toggleTheme()" title="تبديل المظهر" style="padding:6px;display:flex;align-items:center;justify-content:center;">
+        <svg id="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        <svg id="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
       <span class="user-name" id="user-display"></span>
       <button class="btn-logout" onclick="doLogout()">خروج</button>
     </div>
@@ -237,6 +265,14 @@
     <button id="nav-projects" onclick="showTab('projects', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
       المشاريع
+    </button>
+    <button id="nav-clients" onclick="showTab('clients', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      العملاء
+    </button>
+    <button id="nav-suppliers" onclick="showTab('suppliers', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      الموردين
     </button>
     <button id="nav-settings" onclick="showTab('settings', this)" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -319,6 +355,7 @@
           <select id="inv-status-filter" onchange="renderInvoices()" style="max-width:140px">
             <option value="">كل الحالات</option>
             <option value="paid">مدفوعة</option>
+            <option value="partial">مدفوعة جزئيًا</option>
             <option value="pending">معلّقة</option>
             <option value="overdue">متأخرة</option>
           </select>
@@ -428,6 +465,46 @@
       </div>
     </div>
 
+    <!-- العملاء -->
+    <div id="tab-clients" class="section">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">دليل العملاء</span>
+          <button class="btn btn-accent" id="btn-new-client" onclick="openClientModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            عميل جديد
+          </button>
+        </div>
+        <div class="toolbar-row">
+          <div class="search-wrap">
+            <input type="text" class="search-input" id="client-search" placeholder="بحث بالاسم أو رقم الهاتف…" oninput="renderClients()" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+        <div id="clients-list"></div>
+      </div>
+    </div>
+
+    <!-- الموردين -->
+    <div id="tab-suppliers" class="section">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">الموردين</span>
+          <button class="btn btn-accent" id="btn-new-supplier" onclick="openSupplierModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            مورد جديد
+          </button>
+        </div>
+        <div class="toolbar-row">
+          <div class="search-wrap">
+            <input type="text" class="search-input" id="supplier-search" placeholder="بحث بالاسم أو رقم الهاتف…" oninput="renderSuppliers()" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+        <div id="suppliers-list"></div>
+      </div>
+    </div>
+
     <!-- الإعدادات (للمدير فقط) -->
     <div id="tab-settings" class="section">
       <div class="card">
@@ -468,13 +545,25 @@
     <input type="hidden" id="inv-edit-id" value="" />
     <div id="inv-err"></div>
     <div class="form-grid">
-      <div class="form-group"><label>اسم العميل *</label><input id="inv-client" placeholder="مثال: مجموعة المنصور" /></div>
+      <div class="form-group"><label>اسم العميل *</label><input id="inv-client" list="clients-datalist" placeholder="مثال: مجموعة المنصور" /><datalist id="clients-datalist"></datalist></div>
       <div class="form-group"><label>رقم الفاتورة *</label><input id="inv-num" placeholder="INV-001" /></div>
-      <div class="form-group full"><label>المشروع</label><input id="inv-project" placeholder="اسم المشروع" /></div>
+      <div class="form-group full"><label>المشروع</label><select id="inv-project"><option value="">— بدون مشروع —</option></select></div>
       <div class="form-group"><label>المبلغ (جنيه) *</label><input id="inv-amount" type="number" placeholder="0" /></div>
       <div class="form-group"><label>تاريخ الإصدار</label><input id="inv-issue" type="date" /></div>
       <div class="form-group full"><label>تاريخ الاستحقاق *</label><input id="inv-due" type="date" /></div>
       <div class="form-group full"><label>ملاحظات</label><textarea id="inv-notes" placeholder="ملاحظات اختيارية…"></textarea></div>
+    </div>
+    <div id="inv-payments-section" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:13px;font-weight:700;">الدفعات</span>
+        <span id="inv-remaining-label" style="font-size:13px;font-weight:700;"></span>
+      </div>
+      <div id="inv-payments-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
+      <div id="inv-add-payment-row" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <input id="inv-payment-amount" type="number" placeholder="المبلغ" style="flex:1;min-width:90px" />
+        <input id="inv-payment-date" type="date" style="flex:1;min-width:120px" />
+        <button class="btn btn-sm btn-accent" onclick="addInvoicePayment()">إضافة دفعة</button>
+      </div>
     </div>
     <div id="inv-audit-section" style="display:none;margin-top:12px;font-size:12px;color:var(--text3);border-top:1px solid var(--border);padding-top:10px;"></div>
     <div class="modal-actions">
@@ -503,7 +592,8 @@
           <option value="أخرى">أخرى</option>
         </select>
       </div>
-      <div class="form-group"><label>المشروع</label><input id="exp-project" placeholder="اسم المشروع" /></div>
+      <div class="form-group"><label>المشروع</label><select id="exp-project"><option value="">— بدون مشروع —</option></select></div>
+      <div class="form-group full"><label>المورد</label><input id="exp-supplier" list="suppliers-datalist" placeholder="اسم المورد (اختياري)" /><datalist id="suppliers-datalist"></datalist></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-accent" onclick="saveExpense()">حفظ المصروف</button>
@@ -518,6 +608,25 @@
     <div class="modal-title" id="prj-modal-title">مشروع جديد</div>
     <input type="hidden" id="prj-edit-id" value="" />
     <div id="prj-err"></div>
+
+    <div id="prj-financials-section" style="display:none;margin-bottom:16px;">
+      <div id="prj-financial-summary" style="font-size:13px;color:var(--text2);background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px;"></div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="btn btn-sm btn-accent" id="prj-add-invoice-btn" onclick="quickAddForProject('invoice')">+ فاتورة لهذا المشروع</button>
+        <button class="btn btn-sm btn-accent" id="prj-add-expense-btn" onclick="quickAddForProject('expense')">+ مصروف لهذا المشروع</button>
+        <button class="btn btn-sm btn-pdf" id="prj-handover-btn" onclick="exportProjectHandoverPDF(document.getElementById('prj-edit-id').value)">إيصال تسليم</button>
+      </div>
+      <div style="margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">فواتير المشروع</div>
+        <div id="prj-invoices-list" style="max-height:170px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+      <div style="margin-bottom:6px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">مصروفات المشروع</div>
+        <div id="prj-expenses-list" style="max-height:170px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+    </div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:8px;border-top:1px solid var(--border);padding-top:12px;">بيانات المشروع</div>
     <div class="form-grid">
       <div class="form-group full"><label>اسم المشروع *</label><input id="prj-name" placeholder="مثال: فيلا القاهرة الجديدة #12" /></div>
       <div class="form-group"><label>العميل</label><input id="prj-client" placeholder="اسم العميل" /></div>
@@ -576,17 +685,65 @@
         <select id="emp-role" onchange="onEmpRoleChange()">
           <option value="admin">مدير / IT (صلاحيات كاملة)</option>
           <option value="accountant">محاسب (عرض فقط)</option>
-          <option value="engineer">مهندس ميداني (مشروع واحد)</option>
+          <option value="engineer">مهندس ميداني</option>
         </select>
       </div>
       <div class="form-group full" id="emp-project-group" style="display:none">
-        <label>المشروع المعيّن *</label>
-        <select id="emp-project"></select>
+        <label>المشاريع المعيّنة * <span style="color:var(--text3);font-weight:400">(يمكن اختيار أكثر من مشروع)</span></label>
+        <div id="emp-project-checkboxes" style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;max-height:160px;overflow-y:auto;"></div>
       </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-accent" id="emp-save-btn" onclick="saveEmployee()">حفظ</button>
       <button class="btn" onclick="closeModal('employee')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة العميل -->
+<div class="modal-overlay" id="modal-client">
+  <div class="modal">
+    <div class="modal-title" id="client-modal-title">عميل جديد</div>
+    <input type="hidden" id="client-edit-id" value="" />
+    <div id="client-err"></div>
+    <div class="form-grid">
+      <div class="form-group full"><label>الاسم *</label><input id="client-name" placeholder="اسم العميل أو الشركة" /></div>
+      <div class="form-group full"><label>رقم الهاتف</label><input id="client-phone" type="tel" placeholder="01xxxxxxxxx" /></div>
+      <div class="form-group full"><label>العنوان</label><input id="client-address" placeholder="العنوان (اختياري)" /></div>
+      <div class="form-group full"><label>ملاحظات</label><textarea id="client-notes" placeholder="ملاحظات اختيارية…"></textarea></div>
+    </div>
+    <div id="client-summary-section" style="display:none;margin-top:12px;font-size:13px;color:var(--text2);background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" id="client-save-btn" onclick="saveClient()">حفظ</button>
+      <button class="btn" onclick="closeModal('client')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة المورد -->
+<div class="modal-overlay" id="modal-supplier">
+  <div class="modal">
+    <div class="modal-title" id="supplier-modal-title">مورد جديد</div>
+    <input type="hidden" id="supplier-edit-id" value="" />
+    <div id="supplier-err"></div>
+    <div class="form-grid">
+      <div class="form-group full"><label>الاسم *</label><input id="supplier-name" placeholder="اسم المورد أو الشركة" /></div>
+      <div class="form-group"><label>رقم الهاتف</label><input id="supplier-phone" type="tel" placeholder="01xxxxxxxxx" /></div>
+      <div class="form-group"><label>النوع</label>
+        <select id="supplier-category">
+          <option value="مواد">مواد</option>
+          <option value="عمالة">عمالة</option>
+          <option value="معدات">معدات</option>
+          <option value="نقل">نقل</option>
+          <option value="أخرى">أخرى</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>ملاحظات</label><textarea id="supplier-notes" placeholder="ملاحظات اختيارية…"></textarea></div>
+    </div>
+    <div id="supplier-summary-section" style="display:none;margin-top:12px;font-size:13px;color:var(--text2);background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" id="supplier-save-btn" onclick="saveSupplier()">حفظ</button>
+      <button class="btn" onclick="closeModal('supplier')">إغلاق</button>
     </div>
   </div>
 </div>
@@ -616,7 +773,7 @@
   let currentUser = null;
   let currentUserName = '';
   let currentUserRole = 'accountant';   // admin | accountant | engineer (default: safest = view-only)
-  let currentUserProject = '';          // used for engineer role
+  let currentUserProjects = [];         // used for engineer role — list of assigned project names
 
   const ROLE_LABELS = {
     admin: 'مدير',
@@ -624,27 +781,35 @@
     engineer: 'مهندس ميداني'
   };
 
+  // Reads assignedProjects (new array field), falling back to the older
+  // singular assignedProject string field for users created before this update.
+  function readAssignedProjects(d) {
+    if (Array.isArray(d.assignedProjects)) return d.assignedProjects.map(p => (p || '').trim()).filter(Boolean);
+    if (d.assignedProject) return [d.assignedProject.trim()].filter(Boolean);
+    return [];
+  }
+
   // Auth state listener
   auth.onAuthStateChanged(async user => {
     if (user) {
       currentUser = user;
-      // Get user profile (name, role, assignedProject) from Firestore users collection
+      // Get user profile (name, role, assignedProjects) from Firestore users collection
       try {
         const doc = await db.collection('users').doc(user.uid).get();
         if (doc.exists) {
           const d = doc.data();
           currentUserName = d.name || user.email;
           currentUserRole = (d.role || 'accountant').trim();
-          currentUserProject = (d.assignedProject || '').trim();
+          currentUserProjects = readAssignedProjects(d);
         } else {
           currentUserName = user.email;
           currentUserRole = 'accountant';
-          currentUserProject = '';
+          currentUserProjects = [];
         }
       } catch(e) {
         currentUserName = user.email;
         currentUserRole = 'accountant';
-        currentUserProject = '';
+        currentUserProjects = [];
       }
       document.getElementById('user-display').textContent = `${currentUserName} (${ROLE_LABELS[currentUserRole] || currentUserRole})`;
       document.getElementById('login-screen').classList.add('hidden');
@@ -665,15 +830,21 @@
 
     // Nav tabs
     document.getElementById('nav-dashboard').style.display = isEngineer ? 'none' : '';
+    document.getElementById('nav-clients').style.display = isEngineer ? 'none' : '';
+    document.getElementById('nav-suppliers').style.display = isEngineer ? 'none' : '';
     // Engineers can see the Projects tab, but renderProjects() restricts it to their own project
 
     // Add/create buttons
     const newInvoiceBtn = document.getElementById('btn-new-invoice');
     const newExpenseBtn = document.getElementById('btn-new-expense');
     const newProjectBtn = document.getElementById('btn-new-project');
+    const newClientBtn = document.getElementById('btn-new-client');
+    const newSupplierBtn = document.getElementById('btn-new-supplier');
     if (newInvoiceBtn) newInvoiceBtn.style.display = isAccountant ? 'none' : '';
     if (newExpenseBtn) newExpenseBtn.style.display = isAccountant ? 'none' : '';
     if (newProjectBtn) newProjectBtn.style.display = (isAccountant || isEngineer) ? 'none' : '';
+    if (newClientBtn) newClientBtn.style.display = isAccountant ? 'none' : '';
+    if (newSupplierBtn) newSupplierBtn.style.display = isAccountant ? 'none' : '';
 
     // Backup button (admin only)
     const backupBtn = document.getElementById('btn-backup');
@@ -684,13 +855,8 @@
     if (settingsNav) settingsNav.style.display = isAdmin ? '' : 'none';
     if (isAdmin) loadCompanySettings();
 
-    // For engineer: lock project field and land on invoices tab
+    // Land engineer on invoices tab since dashboard is hidden
     if (isEngineer) {
-      const invProject = document.getElementById('inv-project');
-      const expProject = document.getElementById('exp-project');
-      if (invProject) { invProject.value = currentUserProject; invProject.readOnly = true; }
-      if (expProject) { expProject.value = currentUserProject; expProject.readOnly = true; }
-      // Land on invoices tab since dashboard is hidden
       document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
       document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
       document.getElementById('tab-invoices').classList.add('visible');
@@ -731,7 +897,7 @@
     if (e.key === 'Enter' && !document.getElementById('login-screen').classList.contains('hidden')) doLogin();
   });
 
-  let state = { invoices: [], expenses: [], projects: [] };
+  let state = { invoices: [], expenses: [], projects: [], clients: [], suppliers: [] };
   let deferredPrompt = null;
 
   window.addEventListener('beforeinstallprompt', e => {
@@ -754,6 +920,24 @@
   }
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   function today() { return new Date().toISOString().split('T')[0]; }
+
+  // ===== Theme (light/dark) =====
+  function applyTheme(theme) {
+    document.body.classList.toggle('light-mode', theme === 'light');
+    document.getElementById('theme-icon-dark').style.display = theme === 'light' ? '' : 'none';
+    document.getElementById('theme-icon-light').style.display = theme === 'light' ? 'none' : '';
+  }
+  function toggleTheme() {
+    const isLight = document.body.classList.contains('light-mode');
+    const next = isLight ? 'dark' : 'light';
+    localStorage.setItem('artash_theme', next);
+    applyTheme(next);
+    if (typeof renderBudgetChart === 'function' && document.getElementById('budget-chart')) renderBudgetChart();
+  }
+  (function initTheme() {
+    const saved = localStorage.getItem('artash_theme') || 'dark';
+    applyTheme(saved);
+  })();
 
   // ===== Smart search helpers =====
   // Normalizes Arabic text: removes diacritics, unifies letter variants (أ/إ/آ -> ا، ى -> ي، ة -> ه),
@@ -825,31 +1009,47 @@
     document.getElementById('nav-invoices').classList.add('active');
   }
 
+  // Fills a <select id="..."> with project names. Engineers only see their assigned projects.
+  function populateProjectSelect(selectId, currentValue) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const projectNames = currentUserRole === 'engineer'
+      ? state.projects.filter(p => currentUserProjects.includes(p.name)).map(p => p.name)
+      : state.projects.map(p => p.name);
+    const options = ['<option value="">— بدون مشروع —</option>']
+      .concat(projectNames.map(name => `<option value="${name}">${name}</option>`));
+    sel.innerHTML = options.join('');
+    sel.value = currentValue && projectNames.includes(currentValue) ? currentValue : '';
+  }
+
   function openModal(type) {
     document.getElementById('modal-' + type).classList.add('open');
     if (type === 'invoice') {
       document.getElementById('inv-edit-id').value = '';
       document.getElementById('inv-modal-title').textContent = 'فاتورة جديدة';
       document.getElementById('inv-audit-section').style.display = 'none';
+      document.getElementById('inv-payments-section').style.display = 'none';
       document.getElementById('inv-save-btn').style.display = '';
       setFormReadonly('invoice', false);
       document.getElementById('inv-issue').value = today();
       document.getElementById('inv-err').innerHTML = '';
-      if (currentUserRole === 'engineer') {
-        document.getElementById('inv-project').value = currentUserProject;
-        document.getElementById('inv-project').readOnly = true;
-      }
+      const defaultProject = currentUserRole === 'engineer' && currentUserProjects.length === 1 ? currentUserProjects[0] : '';
+      populateProjectSelect('inv-project', defaultProject);
+      document.getElementById('inv-project').disabled = (currentUserRole === 'engineer' && currentUserProjects.length === 1);
     }
     if (type === 'expense') {
       document.getElementById('exp-date').value = today();
       document.getElementById('exp-err').innerHTML = '';
-      if (currentUserRole === 'engineer') document.getElementById('exp-project').value = currentUserProject;
+      const defaultProject = currentUserRole === 'engineer' && currentUserProjects.length === 1 ? currentUserProjects[0] : '';
+      populateProjectSelect('exp-project', defaultProject);
+      document.getElementById('exp-project').disabled = (currentUserRole === 'engineer' && currentUserProjects.length === 1);
     }
     if (type === 'project') {
       document.getElementById('prj-edit-id').value = '';
       document.getElementById('prj-modal-title').textContent = 'مشروع جديد';
       document.getElementById('prj-audit-section').style.display = 'none';
       document.getElementById('prj-members-section').style.display = 'none';
+      document.getElementById('prj-financials-section').style.display = 'none';
       document.getElementById('prj-save-btn').style.display = '';
       setFormReadonly('project', false);
       document.getElementById('prj-start').value = today();
@@ -882,7 +1082,7 @@
     document.getElementById('inv-err').innerHTML = '';
     document.getElementById('inv-client').value = inv.client || '';
     document.getElementById('inv-num').value = inv.num || '';
-    document.getElementById('inv-project').value = inv.project || '';
+    populateProjectSelect('inv-project', inv.project || '');
     document.getElementById('inv-amount').value = inv.amount || '';
     document.getElementById('inv-issue').value = inv.issue || '';
     document.getElementById('inv-due').value = inv.due || '';
@@ -891,10 +1091,6 @@
     // Audit info
     let audit = `أُنشئت بواسطة: <strong style="color:var(--text)">${inv.createdBy || 'غير معروف'}</strong>`;
     if (inv.createdAt) audit += ` — ${fmtDate(inv.createdAt.split('T')[0])}`;
-    if (inv.paid) {
-      audit += `<br>تم تسديدها بواسطة: <strong style="color:var(--green)">${inv.paidBy || 'غير معروف'}</strong>`;
-      if (inv.paidAt) audit += ` — ${fmtDate(inv.paidAt.split('T')[0])}`;
-    }
     if (inv.updatedBy) {
       audit += `<br>آخر تعديل بواسطة: <strong style="color:var(--text)">${inv.updatedBy}</strong>`;
       if (inv.updatedAt) audit += ` — ${fmtDate(inv.updatedAt.split('T')[0])}`;
@@ -902,11 +1098,46 @@
     document.getElementById('inv-audit-section').innerHTML = audit;
     document.getElementById('inv-audit-section').style.display = '';
 
-    // Permissions: accountant = read-only, engineer locked to own project field
-    const readonly = currentUserRole === 'accountant';
+    // Permissions: accountant = read-only; engineer can only edit invoices on their own projects
+    const readonly = currentUserRole === 'accountant' || (currentUserRole === 'engineer' && !currentUserProjects.includes(inv.project));
     setFormReadonly('invoice', readonly);
     document.getElementById('inv-save-btn').style.display = readonly ? 'none' : '';
-    if (currentUserRole === 'engineer') document.getElementById('inv-project').readOnly = true;
+
+    renderInvoicePaymentsSection(inv, readonly);
+  }
+
+  function renderInvoicePaymentsSection(inv, readonly) {
+    document.getElementById('inv-payments-section').style.display = '';
+    const remaining = invoiceRemaining(inv);
+    const paidTotal = invoicePaidTotal(inv);
+    const remainingColor = remaining <= 0 ? 'var(--green)' : 'var(--red)';
+    document.getElementById('inv-remaining-label').innerHTML = remaining <= 0
+      ? `<span style="color:var(--green)">مدفوعة بالكامل</span>`
+      : `المتبقي: <span style="color:${remainingColor}">${fmt(remaining)}</span>`;
+
+    const payments = getInvoicePayments(inv);
+    const list = document.getElementById('inv-payments-list');
+    if (!payments.length) {
+      list.innerHTML = '<div style="font-size:12px;color:var(--text3);">لا توجد دفعات مسجّلة بعد.</div>';
+    } else {
+      list.innerHTML = payments.slice().reverse().map(p => `
+        <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--green)">${fmt(p.amount)}</div>
+            <div style="font-size:11px;color:var(--text3)">${fmtDate(p.date)} — بواسطة ${p.by || 'غير معروف'}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-sm btn-pdf" onclick="exportPaymentReceiptPDF('${inv.id}','${p.id}')">إيصال</button>
+            ${(!readonly && p.id !== 'legacy') ? `<button class="btn btn-sm btn-danger" onclick="deleteInvoicePayment('${inv.id}','${p.id}')">حذف</button>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('inv-add-payment-row').style.display = (readonly || remaining <= 0) ? 'none' : '';
+    if (!readonly && remaining > 0) {
+      document.getElementById('inv-payment-date').value = today();
+    }
   }
 
   async function openProjectDetail(id) {
@@ -921,6 +1152,8 @@
     document.getElementById('prj-budget').value = p.budget || '';
     document.getElementById('prj-start').value = p.start || '';
     document.getElementById('prj-status').value = p.status || 'نشط';
+
+    renderProjectFinancials(p);
 
     // Audit info
     let audit = `أُنشئ بواسطة: <strong style="color:var(--text)">${p.createdBy || 'غير معروف'}</strong>`;
@@ -939,8 +1172,16 @@
       membersSection.style.display = '';
       membersList.textContent = 'جارٍ التحميل…';
       try {
-        const allUsers = await db.collection('users').get();
-        const members = allUsers.docs.filter(d => (d.data().assignedProject || '').trim() === p.name.trim());
+        // Targeted query: ask Firestore directly for users assigned to this project,
+        // instead of downloading every user document and filtering in the browser.
+        const newFieldQuery = db.collection('users').where('assignedProjects', 'array-contains', p.name).get();
+        const legacyFieldQuery = db.collection('users').where('assignedProject', '==', p.name).get();
+        const [newFieldSnap, legacyFieldSnap] = await Promise.all([newFieldQuery, legacyFieldQuery]);
+        const seen = new Set();
+        const members = [];
+        [...newFieldSnap.docs, ...legacyFieldSnap.docs].forEach(d => {
+          if (!seen.has(d.id)) { seen.add(d.id); members.push(d); }
+        });
         if (!members.length) {
           membersList.textContent = 'لا يوجد مهندسون معينون على هذا المشروع.';
         } else {
@@ -951,7 +1192,9 @@
             state.invoices.filter(i => i.project === p.name).forEach(i => {
               if (i.createdBy === memberName && i.createdAt) activities.push({ at: i.createdAt, text: `أضاف فاتورة ${i.num}` });
               if (i.updatedBy === memberName && i.updatedAt) activities.push({ at: i.updatedAt, text: `عدّل فاتورة ${i.num}` });
-              if (i.paidBy === memberName && i.paidAt) activities.push({ at: i.paidAt, text: `سدّد فاتورة ${i.num}` });
+              getInvoicePayments(i).forEach(pmt => {
+                if (pmt.by === memberName && pmt.at) activities.push({ at: pmt.at, text: `سجّل دفعة على فاتورة ${i.num}` });
+              });
             });
             state.expenses.filter(e => e.project === p.name).forEach(e => {
               if (e.createdBy === memberName && e.createdAt) activities.push({ at: e.createdAt, text: `أضاف مصروف "${e.desc}"` });
@@ -975,11 +1218,85 @@
     // - admin: full edit of all fields
     // - engineer assigned to this project: can edit everything except the project name
     // - everyone else (accountant, or engineer on another project): view-only
-    const isOwnProjectEngineer = currentUserRole === 'engineer' && p.name === currentUserProject;
+    const isOwnProjectEngineer = currentUserRole === 'engineer' && currentUserProjects.includes(p.name);
     const readonly = !(currentUserRole === 'admin' || isOwnProjectEngineer);
     setFormReadonly('project', readonly);
     if (isOwnProjectEngineer) document.getElementById('prj-name').readOnly = true; // prevent renaming (breaks project linkage)
     document.getElementById('prj-save-btn').style.display = readonly ? 'none' : '';
+  }
+
+  let quickAddProjectName = '';
+
+  function renderProjectFinancials(p) {
+    const section = document.getElementById('prj-financials-section');
+    section.style.display = '';
+
+    const invoices = state.invoices.filter(i => i.project === p.name);
+    const expenses = state.expenses.filter(e => e.project === p.name);
+    const totalInv = invoices.reduce((s, i) => s + Number(i.amount), 0);
+    const totalExp = expenses.reduce((s, e) => s + Number(e.amount), 0);
+    const pct = p.budget > 0 ? Math.round((totalExp / p.budget) * 100) : null;
+
+    document.getElementById('prj-financial-summary').innerHTML = `
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>إجمالي الفواتير</span><strong>${fmt(totalInv)}</strong></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>إجمالي المصروفات</span><strong style="color:var(--red)">${fmt(totalExp)}</strong></div>
+      ${p.budget > 0 ? `<div style="display:flex;justify-content:space-between;"><span>الميزانية</span><strong>${fmt(p.budget)} ${pct !== null ? `(${pct}% منفق)` : ''}</strong></div>` : ''}
+    `;
+
+    const canEdit = currentUserRole !== 'accountant';
+    document.getElementById('prj-add-invoice-btn').style.display = canEdit ? '' : 'none';
+    document.getElementById('prj-add-expense-btn').style.display = canEdit ? '' : 'none';
+
+    const invList = document.getElementById('prj-invoices-list');
+    if (!invoices.length) {
+      invList.innerHTML = '<div style="font-size:12px;color:var(--text3);">لا توجد فواتير لهذا المشروع.</div>';
+    } else {
+      invList.innerHTML = invoices.slice().reverse().map(i => {
+        const st = invoiceStatus(i);
+        return `<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px 10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:8px;" onclick="closeModal('project');openInvoiceDetail('${i.id}')">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--accent)">${i.num} <span style="color:var(--text2);font-weight:400">— ${i.client}</span></div>
+            <div style="font-size:11px;color:var(--text3)">استحقاق: ${fmtDate(i.due)}</div>
+          </div>
+          <div style="text-align:left">
+            <div style="font-size:12px;font-weight:700;">${fmt(i.amount)}</div>
+            <span class="badge badge-${st.key}" style="font-size:10px;">${st.label}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    const expList = document.getElementById('prj-expenses-list');
+    if (!expenses.length) {
+      expList.innerHTML = '<div style="font-size:12px;color:var(--text3);">لا توجد مصروفات لهذا المشروع.</div>';
+    } else {
+      expList.innerHTML = expenses.slice().reverse().map(e => `
+        <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;">${e.desc}</div>
+            <div style="font-size:11px;color:var(--text3)">${e.category} — ${fmtDate(e.date)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-size:12px;font-weight:700;color:var(--red)">${fmt(e.amount)}</div>
+            ${canEdit ? `<button class="btn btn-sm btn-danger" onclick="deleteItem('expenses','${e.id}')">حذف</button>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  // Opens the invoice/expense creation modal pre-locked to a specific project (used from inside a project's detail view)
+  function quickAddForProject(type) {
+    quickAddProjectName = document.getElementById('prj-name').value.trim();
+    closeModal('project');
+    openModal(type);
+    setTimeout(() => {
+      const sel = document.getElementById(type === 'invoice' ? 'inv-project' : 'exp-project');
+      if (sel && quickAddProjectName) {
+        sel.value = quickAddProjectName;
+        sel.disabled = true;
+      }
+    }, 0);
   }
 
   function setupSync() {
@@ -990,10 +1307,12 @@
         state = {
           invoices: data.invoices || [],
           expenses: data.expenses || [],
-          projects: data.projects || []
+          projects: data.projects || [],
+          clients: data.clients || [],
+          suppliers: data.suppliers || []
         };
       } else {
-        state = { invoices: [], expenses: [], projects: [] };
+        state = { invoices: [], expenses: [], projects: [], clients: [], suppliers: [] };
         // initialize the document
         COMPANY_DOC.set(state).catch(() => {});
       }
@@ -1026,16 +1345,36 @@
       : '<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg> محفوظ';
   }
 
+  // ===== Partial payments =====
+  // Reads an invoice's payment history. Falls back to a single synthetic payment
+  // for older invoices saved before this feature (which only had a `paid` boolean).
+  function getInvoicePayments(inv) {
+    if (Array.isArray(inv.payments)) return inv.payments;
+    if (inv.paid) {
+      return [{ id: 'legacy', amount: Number(inv.amount), date: (inv.paidAt || '').split('T')[0] || inv.due || today(), by: inv.paidBy || 'غير معروف', at: inv.paidAt || inv.createdAt || new Date().toISOString() }];
+    }
+    return [];
+  }
+  function invoicePaidTotal(inv) {
+    return getInvoicePayments(inv).reduce((s, p) => s + Number(p.amount), 0);
+  }
+  function invoiceRemaining(inv) {
+    return Math.max(0, Number(inv.amount) - invoicePaidTotal(inv));
+  }
+
   function invoiceStatus(inv) {
-    if (inv.paid) return { key: 'paid', label: 'مدفوعة' };
-    if (inv.due && new Date(inv.due) < new Date()) return { key: 'overdue', label: 'متأخرة' };
+    const remaining = invoiceRemaining(inv);
+    if (remaining <= 0.01) return { key: 'paid', label: 'مدفوعة' };
+    const isOverdue = inv.due && new Date(inv.due) < new Date();
+    if (isOverdue) return { key: 'overdue', label: 'متأخرة' };
+    if (invoicePaidTotal(inv) > 0) return { key: 'partial', label: 'مدفوعة جزئيًا' };
     return { key: 'pending', label: 'معلّقة' };
   }
 
   function renderDashboard() {
     const totalInv = state.invoices.reduce((s, i) => s + Number(i.amount), 0);
-    const collected = state.invoices.filter(i => i.paid).reduce((s, i) => s + Number(i.amount), 0);
-    const pending = state.invoices.filter(i => !i.paid).reduce((s, i) => s + Number(i.amount), 0);
+    const collected = state.invoices.reduce((s, i) => s + invoicePaidTotal(i), 0);
+    const pending = state.invoices.reduce((s, i) => s + invoiceRemaining(i), 0);
     const totalExp = state.expenses.reduce((s, e) => s + Number(e.amount), 0);
     document.getElementById('m-invoiced').textContent = fmt(totalInv);
     document.getElementById('m-collected').textContent = fmt(collected);
@@ -1046,9 +1385,9 @@
     const alerts = [];
     const now = new Date();
 
-    const overdueInvoices = state.invoices.filter(i => !i.paid && i.due && new Date(i.due) < now);
+    const overdueInvoices = state.invoices.filter(i => invoiceRemaining(i) > 0 && i.due && new Date(i.due) < now);
     if (overdueInvoices.length) {
-      const overdueTotal = overdueInvoices.reduce((s, i) => s + Number(i.amount), 0);
+      const overdueTotal = overdueInvoices.reduce((s, i) => s + invoiceRemaining(i), 0);
       alerts.push({
         color: 'red', icon: 'alert-circle',
         title: `لديك ${overdueInvoices.length} فاتورة متأخرة عن السداد`,
@@ -1059,9 +1398,9 @@
 
     if (currentUserRole !== 'engineer') {
       const in3days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
-      const dueSoonInvoices = state.invoices.filter(i => !i.paid && i.due && new Date(i.due) >= now && new Date(i.due) <= in3days);
+      const dueSoonInvoices = state.invoices.filter(i => invoiceRemaining(i) > 0 && i.due && new Date(i.due) >= now && new Date(i.due) <= in3days);
       if (dueSoonInvoices.length) {
-        const dueSoonTotal = dueSoonInvoices.reduce((s, i) => s + Number(i.amount), 0);
+        const dueSoonTotal = dueSoonInvoices.reduce((s, i) => s + invoiceRemaining(i), 0);
         alerts.push({
           color: 'yellow', icon: 'clock',
           title: `${dueSoonInvoices.length} فاتورة مستحقة خلال ٣ أيام`,
@@ -1085,18 +1424,15 @@
           onclick: `showTab('projects', document.getElementById('nav-projects'))`
         });
       }
-    } else if (currentUserProject) {
-      const p = state.projects.find(pr => pr.name === currentUserProject);
-      if (p && p.budget > 0) {
-        const spent = state.expenses.filter(e => e.project === p.name).reduce((s, e) => s + Number(e.amount), 0);
-        if (spent / p.budget >= 0.9) {
-          alerts.push({
-            color: 'red', icon: 'trending-up',
-            title: `مشروعك تجاوز 90% من الميزانية`,
-            sub: `${fmt(spent)} من ${fmt(p.budget)}`,
-            onclick: `showTab('projects', document.getElementById('nav-projects'))`
-          });
-        }
+    } else if (currentUserProjects.length) {
+      const overBudgetOwn = state.projects.filter(p => currentUserProjects.includes(p.name) && p.budget > 0 && (state.expenses.filter(e => e.project === p.name).reduce((s, e) => s + Number(e.amount), 0) / p.budget) >= 0.9);
+      if (overBudgetOwn.length) {
+        alerts.push({
+          color: 'red', icon: 'trending-up',
+          title: overBudgetOwn.length === 1 ? 'مشروعك تجاوز 90% من الميزانية' : `${overBudgetOwn.length} من مشاريعك تجاوزت 90% من ميزانيتها`,
+          sub: overBudgetOwn.map(p => p.name).join('، '),
+          onclick: `showTab('projects', document.getElementById('nav-projects'))`
+        });
       }
     }
 
@@ -1153,7 +1489,7 @@
     const canvas = document.getElementById('budget-chart');
 
     let projects = state.projects.filter(p => p.budget > 0);
-    if (currentUserRole === 'engineer') projects = projects.filter(p => p.name === currentUserProject);
+    if (currentUserRole === 'engineer') projects = projects.filter(p => currentUserProjects.includes(p.name));
 
     if (!projects.length) {
       card.style.display = 'none';
@@ -1164,6 +1500,10 @@
     const labels = projects.map(p => p.name);
     const spent = projects.map(p => state.expenses.filter(e => e.project === p.name).reduce((s, e) => s + Number(e.amount), 0));
     const budgets = projects.map(p => Number(p.budget));
+
+    const isLight = document.body.classList.contains('light-mode');
+    const textColor = isLight ? '#5a5a7a' : '#9aa0c3';
+    const gridColor = isLight ? 'rgba(20,20,40,0.08)' : 'rgba(255,255,255,0.06)';
 
     if (budgetChartInstance) budgetChartInstance.destroy();
     budgetChartInstance = new Chart(canvas, {
@@ -1179,11 +1519,11 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { labels: { color: '#cfd3ec', font: { family: 'Cairo' } } }
+          legend: { labels: { color: textColor, font: { family: 'Cairo' } } }
         },
         scales: {
-          x: { ticks: { color: '#9aa0c3', font: { family: 'Cairo' } }, grid: { color: 'rgba(255,255,255,0.06)' } },
-          y: { ticks: { color: '#9aa0c3', font: { family: 'Cairo' } }, grid: { color: 'rgba(255,255,255,0.06)' } }
+          x: { ticks: { color: textColor, font: { family: 'Cairo' } }, grid: { color: gridColor } },
+          y: { ticks: { color: textColor, font: { family: 'Cairo' } }, grid: { color: gridColor } }
         }
       }
     });
@@ -1195,7 +1535,7 @@
     const dateFrom = document.getElementById('inv-date-from')?.value || '';
     const dateTo = document.getElementById('inv-date-to')?.value || '';
     let list = state.invoices.slice().reverse();
-    if (currentUserRole === 'engineer') list = list.filter(i => i.project === currentUserProject);
+    if (currentUserRole === 'engineer') list = list.filter(i => currentUserProjects.includes(i.project));
     if (q) list = list.filter(i => smartMatch(
       [i.num, i.client, i.project, i.notes, fmt(i.amount), i.amount, fmtDate(i.due), fmtDate(i.issue), invoiceStatus(i).label].join(' '),
       q
@@ -1216,15 +1556,19 @@
     const canEdit = currentUserRole !== 'accountant';
     tb.innerHTML = list.map(i => {
       const st = invoiceStatus(i);
+      const remaining = invoiceRemaining(i);
+      const amountCell = remaining > 0 && remaining < Number(i.amount)
+        ? `<div style="font-weight:700">${fmt(i.amount)}</div><div style="font-size:11px;color:var(--text3)">المتبقي: ${fmt(remaining)}</div>`
+        : `<span style="font-weight:700">${fmt(i.amount)}</span>`;
       return `<tr style="cursor:pointer" onclick="openInvoiceDetail('${i.id}')">
         <td style="font-weight:700;color:var(--accent)">${i.num}</td>
         <td>${i.client}${i.project ? `<div style="font-size:11px;color:var(--text3)">${i.project}</div>` : ''}</td>
-        <td style="font-weight:700">${fmt(i.amount)}</td>
+        <td>${amountCell}</td>
         <td style="color:var(--text2)">${fmtDate(i.due)}</td>
         <td><span class="badge badge-${st.key}">${st.label}</span></td>
         <td style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end" onclick="event.stopPropagation()">
           <button class="btn btn-sm btn-pdf" onclick="exportSingleInvoicePDF('${i.id}')">PDF</button>
-          ${canEdit && !i.paid ? `<button class="btn btn-sm btn-success" onclick="markPaid('${i.id}')">✓ مدفوعة</button>` : ''}
+          ${canEdit && remaining > 0 ? `<button class="btn btn-sm btn-success" onclick="markPaid('${i.id}')">✓ سداد كامل</button>` : ''}
           ${canEdit ? `<button class="btn btn-sm btn-danger" onclick="deleteItem('invoices','${i.id}')">حذف</button>` : ''}
         </td>
       </tr>`;
@@ -1237,9 +1581,9 @@
     const dateFrom = document.getElementById('exp-date-from')?.value || '';
     const dateTo = document.getElementById('exp-date-to')?.value || '';
     let list = state.expenses.slice().reverse();
-    if (currentUserRole === 'engineer') list = list.filter(e => e.project === currentUserProject);
+    if (currentUserRole === 'engineer') list = list.filter(e => currentUserProjects.includes(e.project));
     if (q) list = list.filter(e => smartMatch(
-      [e.desc, e.category, e.project, fmt(e.amount), e.amount, fmtDate(e.date)].join(' '),
+      [e.desc, e.category, e.project, e.supplier, fmt(e.amount), e.amount, fmtDate(e.date)].join(' '),
       q
     ));
     if (catFilter) list = list.filter(e => e.category === catFilter);
@@ -1259,7 +1603,7 @@
     tb.innerHTML = list.map(e => `
       <tr>
         <td style="color:var(--text2)">${fmtDate(e.date)}</td>
-        <td>${e.desc}</td>
+        <td>${e.desc}${e.supplier ? `<div style="font-size:11px;color:var(--text3)">المورد: ${e.supplier}</div>` : ''}</td>
         <td><span class="badge" style="background:var(--blue-bg);color:var(--blue)">${e.category}</span></td>
         <td style="color:var(--text2)">${e.project || '—'}</td>
         <td style="font-weight:700;color:var(--red)">${fmt(e.amount)}</td>
@@ -1272,7 +1616,7 @@
     const el = document.getElementById('project-list');
     const q = (document.getElementById('prj-search')?.value || '').trim();
     let list = state.projects.slice().reverse();
-    if (currentUserRole === 'engineer') list = list.filter(p => p.name === currentUserProject);
+    if (currentUserRole === 'engineer') list = list.filter(p => currentUserProjects.includes(p.name));
     if (q) list = list.filter(p => smartMatch([p.name, p.client, p.status, fmt(p.budget||0)].join(' '), q));
     if (!list.length) {
       el.innerHTML = `<div class="empty-state">${q ? 'لا توجد نتائج مطابقة.' : (currentUserRole === 'engineer' ? 'لم يتم تعيينك على أي مشروع بعد.' : 'لا توجد مشاريع بعد.')}</div>`;
@@ -1308,7 +1652,228 @@
     }).join('');
   }
 
-  function renderAll() { renderDashboard(); renderInvoices(); renderExpenses(); renderProjects(); }
+  function renderAll() { renderDashboard(); renderInvoices(); renderExpenses(); renderProjects(); renderClients(); renderSuppliers(); populateClientsDatalist(); populateSuppliersDatalist(); }
+
+  // ===== Clients directory =====
+
+  function populateClientsDatalist() {
+    const dl = document.getElementById('clients-datalist');
+    if (!dl) return;
+    dl.innerHTML = state.clients.map(c => `<option value="${c.name}">`).join('');
+  }
+
+  function clientTotals(name) {
+    const invoices = state.invoices.filter(i => i.client === name);
+    const totalInvoiced = invoices.reduce((s, i) => s + Number(i.amount), 0);
+    const totalPaid = invoices.reduce((s, i) => s + invoicePaidTotal(i), 0);
+    const totalRemaining = invoices.reduce((s, i) => s + invoiceRemaining(i), 0);
+    return { count: invoices.length, totalInvoiced, totalPaid, totalRemaining };
+  }
+
+  function renderClients() {
+    const el = document.getElementById('clients-list');
+    if (!el) return;
+    const q = (document.getElementById('client-search')?.value || '').trim();
+    let list = state.clients.slice().reverse();
+    if (q) list = list.filter(c => smartMatch([c.name, c.phone, c.address].join(' '), q));
+    if (!list.length) {
+      el.innerHTML = `<div class="empty-state">${q ? 'لا توجد نتائج مطابقة.' : 'لا يوجد عملاء بعد. اضغط "عميل جديد" للإضافة.'}</div>`;
+      return;
+    }
+    const canEdit = currentUserRole !== 'accountant';
+    el.innerHTML = list.map((c, i) => {
+      const idx = state.clients.indexOf(c);
+      const t = clientTotals(c.name);
+      return `<div class="project-item" style="cursor:pointer" onclick="openClientModal(${idx})">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div style="display:flex;align-items:center;gap:8px" onclick="event.stopPropagation()">
+            ${c.phone ? `<a href="tel:${c.phone}" class="btn btn-sm" style="text-decoration:none">اتصال</a>` : ''}
+            ${canEdit ? `<button class="btn btn-sm btn-danger" onclick="deleteClient(${idx})">حذف</button>` : ''}
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:15px;font-weight:700">${c.name}</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">${c.phone || 'بدون رقم'}</div>
+          </div>
+        </div>
+        <div class="project-stats">
+          <div style="text-align:right"><div class="pstat-label">المتبقي</div><div class="pstat-val" style="color:var(--red)">${fmt(t.totalRemaining)}</div></div>
+          <div style="text-align:right"><div class="pstat-label">المدفوع</div><div class="pstat-val" style="color:var(--green)">${fmt(t.totalPaid)}</div></div>
+          <div style="text-align:right"><div class="pstat-label">عدد الفواتير</div><div class="pstat-val">${t.count}</div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function openClientModal(idx) {
+    document.getElementById('modal-client').classList.add('open');
+    document.getElementById('client-err').innerHTML = '';
+    const isEdit = idx !== undefined && idx !== null;
+    if (isEdit) {
+      const c = state.clients[idx];
+      document.getElementById('client-modal-title').textContent = 'تفاصيل العميل';
+      document.getElementById('client-edit-id').value = idx;
+      document.getElementById('client-name').value = c.name || '';
+      document.getElementById('client-phone').value = c.phone || '';
+      document.getElementById('client-address').value = c.address || '';
+      document.getElementById('client-notes').value = c.notes || '';
+      const t = clientTotals(c.name);
+      document.getElementById('client-summary-section').style.display = '';
+      document.getElementById('client-summary-section').innerHTML = `
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>عدد الفواتير</span><strong>${t.count}</strong></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>إجمالي الفواتير</span><strong>${fmt(t.totalInvoiced)}</strong></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>المدفوع</span><strong style="color:var(--green)">${fmt(t.totalPaid)}</strong></div>
+        <div style="display:flex;justify-content:space-between;"><span>المتبقي</span><strong style="color:var(--red)">${fmt(t.totalRemaining)}</strong></div>
+      `;
+    } else {
+      document.getElementById('client-modal-title').textContent = 'عميل جديد';
+      document.getElementById('client-edit-id').value = '';
+      document.getElementById('client-name').value = '';
+      document.getElementById('client-phone').value = '';
+      document.getElementById('client-address').value = '';
+      document.getElementById('client-notes').value = '';
+      document.getElementById('client-summary-section').style.display = 'none';
+    }
+    const readonly = currentUserRole === 'accountant';
+    ['client-name','client-phone','client-address','client-notes'].forEach(id => document.getElementById(id).readOnly = readonly);
+    document.getElementById('client-save-btn').style.display = readonly ? 'none' : '';
+  }
+
+  function saveClient() {
+    const name = document.getElementById('client-name').value.trim();
+    if (!name) {
+      document.getElementById('client-err').innerHTML = '<div class="error-msg">يرجى إدخال اسم العميل.</div>';
+      return;
+    }
+    const fields = {
+      name,
+      phone: document.getElementById('client-phone').value.trim(),
+      address: document.getElementById('client-address').value.trim(),
+      notes: document.getElementById('client-notes').value.trim()
+    };
+    const editIdx = document.getElementById('client-edit-id').value;
+    if (editIdx !== '') {
+      Object.assign(state.clients[Number(editIdx)], fields, { updatedBy: currentUserName, updatedAt: new Date().toISOString() });
+    } else {
+      state.clients.push({ id: uid(), ...fields, createdBy: currentUserName, createdAt: new Date().toISOString() });
+    }
+    persist(); renderAll(); closeModal('client');
+  }
+
+  function deleteClient(idx) {
+    if (currentUserRole === 'accountant') return;
+    if (!confirm('حذف هذا العميل من الدليل؟ (فواتيره الحالية لن تتأثر)')) return;
+    state.clients.splice(idx, 1);
+    persist(); renderAll();
+  }
+
+  // ===== Suppliers directory =====
+
+  function populateSuppliersDatalist() {
+    const dl = document.getElementById('suppliers-datalist');
+    if (!dl) return;
+    dl.innerHTML = state.suppliers.map(s => `<option value="${s.name}">`).join('');
+  }
+
+  function supplierTotals(name) {
+    const expenses = state.expenses.filter(e => e.supplier === name);
+    const totalPaid = expenses.reduce((s, e) => s + Number(e.amount), 0);
+    return { count: expenses.length, totalPaid };
+  }
+
+  function renderSuppliers() {
+    const el = document.getElementById('suppliers-list');
+    if (!el) return;
+    const q = (document.getElementById('supplier-search')?.value || '').trim();
+    let list = state.suppliers.slice().reverse();
+    if (q) list = list.filter(s => smartMatch([s.name, s.phone, s.category].join(' '), q));
+    if (!list.length) {
+      el.innerHTML = `<div class="empty-state">${q ? 'لا توجد نتائج مطابقة.' : 'لا يوجد موردون بعد. اضغط "مورد جديد" للإضافة.'}</div>`;
+      return;
+    }
+    const canEdit = currentUserRole !== 'accountant';
+    el.innerHTML = list.map((s) => {
+      const idx = state.suppliers.indexOf(s);
+      const t = supplierTotals(s.name);
+      return `<div class="project-item" style="cursor:pointer" onclick="openSupplierModal(${idx})">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div style="display:flex;align-items:center;gap:8px" onclick="event.stopPropagation()">
+            ${s.phone ? `<a href="tel:${s.phone}" class="btn btn-sm" style="text-decoration:none">اتصال</a>` : ''}
+            ${canEdit ? `<button class="btn btn-sm btn-danger" onclick="deleteSupplier(${idx})">حذف</button>` : ''}
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:15px;font-weight:700">${s.name}</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">${s.category || ''} ${s.phone ? '· ' + s.phone : ''}</div>
+          </div>
+        </div>
+        <div class="project-stats">
+          <div style="text-align:right"><div class="pstat-label">إجمالي المدفوع له</div><div class="pstat-val" style="color:var(--red)">${fmt(t.totalPaid)}</div></div>
+          <div style="text-align:right"><div class="pstat-label">عدد المصروفات</div><div class="pstat-val">${t.count}</div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function openSupplierModal(idx) {
+    document.getElementById('modal-supplier').classList.add('open');
+    document.getElementById('supplier-err').innerHTML = '';
+    const isEdit = idx !== undefined && idx !== null;
+    if (isEdit) {
+      const s = state.suppliers[idx];
+      document.getElementById('supplier-modal-title').textContent = 'تفاصيل المورد';
+      document.getElementById('supplier-edit-id').value = idx;
+      document.getElementById('supplier-name').value = s.name || '';
+      document.getElementById('supplier-phone').value = s.phone || '';
+      document.getElementById('supplier-category').value = s.category || 'مواد';
+      document.getElementById('supplier-notes').value = s.notes || '';
+      const t = supplierTotals(s.name);
+      document.getElementById('supplier-summary-section').style.display = '';
+      document.getElementById('supplier-summary-section').innerHTML = `
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>عدد المصروفات</span><strong>${t.count}</strong></div>
+        <div style="display:flex;justify-content:space-between;"><span>إجمالي المدفوع له</span><strong style="color:var(--red)">${fmt(t.totalPaid)}</strong></div>
+      `;
+    } else {
+      document.getElementById('supplier-modal-title').textContent = 'مورد جديد';
+      document.getElementById('supplier-edit-id').value = '';
+      document.getElementById('supplier-name').value = '';
+      document.getElementById('supplier-phone').value = '';
+      document.getElementById('supplier-category').value = 'مواد';
+      document.getElementById('supplier-notes').value = '';
+      document.getElementById('supplier-summary-section').style.display = 'none';
+    }
+    const readonly = currentUserRole === 'accountant';
+    ['supplier-name','supplier-phone','supplier-notes'].forEach(id => document.getElementById(id).readOnly = readonly);
+    document.getElementById('supplier-category').disabled = readonly;
+    document.getElementById('supplier-save-btn').style.display = readonly ? 'none' : '';
+  }
+
+  function saveSupplier() {
+    const name = document.getElementById('supplier-name').value.trim();
+    if (!name) {
+      document.getElementById('supplier-err').innerHTML = '<div class="error-msg">يرجى إدخال اسم المورد.</div>';
+      return;
+    }
+    const fields = {
+      name,
+      phone: document.getElementById('supplier-phone').value.trim(),
+      category: document.getElementById('supplier-category').value,
+      notes: document.getElementById('supplier-notes').value.trim()
+    };
+    const editIdx = document.getElementById('supplier-edit-id').value;
+    if (editIdx !== '') {
+      Object.assign(state.suppliers[Number(editIdx)], fields, { updatedBy: currentUserName, updatedAt: new Date().toISOString() });
+    } else {
+      state.suppliers.push({ id: uid(), ...fields, createdBy: currentUserName, createdAt: new Date().toISOString() });
+    }
+    persist(); renderAll(); closeModal('supplier');
+  }
+
+  function deleteSupplier(idx) {
+    if (currentUserRole === 'accountant') return;
+    if (!confirm('حذف هذا المورد من الدليل؟ (مصروفاته الحالية لن تتأثر)')) return;
+    state.suppliers.splice(idx, 1);
+    persist(); renderAll();
+  }
+
 
   // ===== PDF Export Functions (Arabic via HTML render) =====
 
@@ -1331,7 +1896,8 @@
     return `
       </div>
       <div style="text-align:center;color:#999;font-size:11px;padding:10px 0 20px;">
-        تم الإنشاء: ${fmtDate(now.toISOString().split('T')[0])} — ${now.toLocaleTimeString('ar-EG')}
+        تم الإنشاء بواسطة: ${currentUserName} (${ROLE_LABELS[currentUserRole] || currentUserRole})<br>
+        ${fmtDate(now.toISOString().split('T')[0])} — ${now.toLocaleTimeString('ar-EG')}
       </div>
     </div>`;
   }
@@ -1386,9 +1952,12 @@
   async function exportSingleInvoicePDF(id) {
     const inv = state.invoices.find(i => i.id === id);
     if (!inv) return;
-    if (currentUserRole === 'engineer' && inv.project !== currentUserProject) return;
+    if (currentUserRole === 'engineer' && !currentUserProjects.includes(inv.project)) return;
     const st = invoiceStatus(inv);
-    const stColors = { paid: '#2ecc8a', pending: '#e8b84b', overdue: '#e85555' };
+    const stColors = { paid: '#2ecc8a', pending: '#e8b84b', overdue: '#e85555', partial: '#5b8dee' };
+    const payments = getInvoicePayments(inv);
+    const paidTotal = invoicePaidTotal(inv);
+    const remaining = invoiceRemaining(inv);
 
     let html = pdfWrapStart('فاتورة');
     html += `<div style="font-size:24px;font-weight:700;margin-bottom:6px;">فاتورة رقم ${inv.num}</div>`;
@@ -1401,27 +1970,107 @@
     if (inv.notes) {
       html += `<div style="margin-top:16px;"><div style="font-weight:700;color:#555;margin-bottom:6px;">ملاحظات</div><div style="background:#f7f7f9;padding:12px;border-radius:8px;font-size:13px;line-height:1.8;">${inv.notes.replace(/\n/g,'<br>')}</div></div>`;
     }
+    if (payments.length) {
+      html += `<div style="margin-top:16px;"><div style="font-weight:700;color:#555;margin-bottom:6px;">سجل الدفعات</div>`;
+      payments.forEach(p => {
+        html += `<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid #f0f0f0;"><span>${fmtDate(p.date)} — ${p.by || ''}</span><span style="font-weight:700;color:#2ecc8a;">${fmt(p.amount)}</span></div>`;
+      });
+      html += `</div>`;
+    }
     html += `<div style="height:2px;background:#e8b84b;margin:20px 0;"></div>`;
     html += `<div style="display:flex;justify-content:space-between;align-items:center;">
-      <div style="font-size:18px;font-weight:700;">الإجمالي المستحق</div>
+      <div style="font-size:18px;font-weight:700;">إجمالي الفاتورة</div>
       <div style="font-size:24px;font-weight:700;color:#1a1a2e;">${fmt(inv.amount)}</div>
     </div>`;
+    if (paidTotal > 0) {
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+        <div style="font-size:14px;color:#555;">المدفوع</div>
+        <div style="font-size:16px;font-weight:700;color:#2ecc8a;">${fmt(paidTotal)}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+        <div style="font-size:14px;color:#555;">المتبقي</div>
+        <div style="font-size:16px;font-weight:700;color:#e85555;">${fmt(remaining)}</div>
+      </div>`;
+    }
     html += pdfWrapEnd();
 
     await renderHtmlToPdf(html, `invoice-${inv.num}.pdf`);
   }
 
+  // Generates a signed-style receipt for a single payment (useful to hand to the client on-site)
+  async function exportPaymentReceiptPDF(invId, paymentId) {
+    const inv = state.invoices.find(i => i.id === invId);
+    if (!inv) return;
+    if (currentUserRole === 'engineer' && !currentUserProjects.includes(inv.project)) return;
+    const payment = getInvoicePayments(inv).find(p => p.id === paymentId);
+    if (!payment) return;
+
+    let html = pdfWrapStart('إيصال استلام دفعة');
+    html += `<div style="font-size:22px;font-weight:700;margin-bottom:16px;">إيصال استلام مبلغ</div>`;
+    html += `<div style="height:1px;background:#ddd;margin-bottom:16px;"></div>`;
+    html += rowHtml('استلمنا من السيد/ة', inv.client);
+    html += rowHtml('مبلغ وقدره', `<strong>${fmt(payment.amount)}</strong>`);
+    html += rowHtml('وذلك عن', `فاتورة رقم ${inv.num}${inv.project ? ' — مشروع ' + inv.project : ''}`);
+    html += rowHtml('تاريخ الاستلام', fmtDate(payment.date));
+    html += rowHtml('المتبقي على الفاتورة بعد هذه الدفعة', fmt(invoiceRemaining(inv)));
+    html += `<div style="height:60px;"></div>`;
+    html += `<div style="display:flex;justify-content:space-between;gap:20px;">
+      <div style="flex:1;text-align:center;">
+        <div style="border-top:1px solid #999;padding-top:8px;font-size:13px;color:#555;">توقيع المُسلِّم (${payment.by || currentUserName})</div>
+      </div>
+      <div style="flex:1;text-align:center;">
+        <div style="border-top:1px solid #999;padding-top:8px;font-size:13px;color:#555;">توقيع المستلم (العميل)</div>
+      </div>
+    </div>`;
+    html += pdfWrapEnd();
+
+    await renderHtmlToPdf(html, `receipt-${inv.num}-${payment.date}.pdf`);
+  }
+
+  // Generates a generic project handover / delivery receipt, signed by both the company rep and the client.
+  // Used for milestone or final handover of a project, separate from payment receipts.
+  async function exportProjectHandoverPDF(projectId) {
+    const p = state.projects.find(x => x.id === projectId);
+    if (!p) return;
+    if (currentUserRole === 'engineer' && !currentUserProjects.includes(p.name)) return;
+    const desc = prompt('وصف مختصر لما يخص هذا التسليم (مثال: تسليم المرحلة الأولى من أعمال البناء):', '');
+    if (desc === null) return;
+
+    let html = pdfWrapStart('إيصال تسليم مشروع');
+    html += `<div style="font-size:22px;font-weight:700;margin-bottom:16px;">إيصال تسليم</div>`;
+    html += `<div style="height:1px;background:#ddd;margin-bottom:16px;"></div>`;
+    html += rowHtml('المشروع', p.name);
+    html += rowHtml('العميل', p.client || '—');
+    html += rowHtml('تاريخ التسليم', fmtDate(today()));
+    if (desc) {
+      html += `<div style="margin-top:16px;"><div style="font-weight:700;color:#555;margin-bottom:6px;">تفاصيل التسليم</div><div style="background:#f7f7f9;padding:12px;border-radius:8px;font-size:13px;line-height:1.8;">${desc.replace(/\n/g,'<br>')}</div></div>`;
+    }
+    html += `<div style="margin-top:20px;font-size:13px;color:#555;line-height:1.8;">يؤكد الطرفان أدناه استلام وتسليم ما ذُكر أعلاه في حالة جيدة وبدون تحفظات، إلا ما يُذكر صريحًا في خانة "تفاصيل التسليم".</div>`;
+    html += `<div style="height:60px;"></div>`;
+    html += `<div style="display:flex;justify-content:space-between;gap:20px;">
+      <div style="flex:1;text-align:center;">
+        <div style="border-top:1px solid #999;padding-top:8px;font-size:13px;color:#555;">توقيع عن الشركة (${currentUserName})</div>
+      </div>
+      <div style="flex:1;text-align:center;">
+        <div style="border-top:1px solid #999;padding-top:8px;font-size:13px;color:#555;">توقيع العميل</div>
+      </div>
+    </div>`;
+    html += pdfWrapEnd();
+
+    await renderHtmlToPdf(html, `handover-${p.name}.pdf`);
+  }
+
   async function exportInvoicesPDF() {
     const { list: invoiceList, hasFilters } = getFilteredInvoices();
     if (!invoiceList.length) { alert('لا توجد فواتير لتصديرها.'); return; }
-    const stColors = { paid: '#2ecc8a', pending: '#e8b84b', overdue: '#e85555' };
+    const stColors = { paid: '#2ecc8a', pending: '#e8b84b', overdue: '#e85555', partial: '#5b8dee' };
     let totalInv = 0, totalPaid = 0;
 
     let rows = '';
     invoiceList.forEach(inv => {
       const st = invoiceStatus(inv);
       totalInv += Number(inv.amount);
-      if (inv.paid) totalPaid += Number(inv.amount);
+      totalPaid += invoicePaidTotal(inv);
       rows += `<tr>
         <td style="padding:8px;border-bottom:1px solid #eee;font-weight:700;">${inv.num}</td>
         <td style="padding:8px;border-bottom:1px solid #eee;">${inv.client}</td>
@@ -1507,6 +2156,8 @@
         'العميل': i.client,
         'المشروع': i.project || '',
         'المبلغ': Number(i.amount),
+        'المدفوع': invoicePaidTotal(i),
+        'المتبقي': invoiceRemaining(i),
         'تاريخ الإصدار': i.issue || '',
         'تاريخ الاستحقاق': i.due || '',
         'الحالة': st.label,
@@ -1546,8 +2197,8 @@
 
   async function exportSummaryPDF() {
     const totalInv = state.invoices.reduce((s, i) => s + Number(i.amount), 0);
-    const collected = state.invoices.filter(i => i.paid).reduce((s, i) => s + Number(i.amount), 0);
-    const pending = totalInv - collected;
+    const collected = state.invoices.reduce((s, i) => s + invoicePaidTotal(i), 0);
+    const pending = state.invoices.reduce((s, i) => s + invoiceRemaining(i), 0);
     const totalExp = state.expenses.reduce((s, e) => s + Number(e.amount), 0);
     const net = collected - totalExp;
 
@@ -1828,7 +2479,8 @@
       }
       list.innerHTML = employeesCache.map((u, idx) => {
         const roleLabel = ROLE_LABELS[u.role] || u.role || '—';
-        const projectInfo = u.role === 'engineer' ? `<div style="font-size:11px;color:var(--text3);margin-top:2px">المشروع: ${u.assignedProject || 'غير معيّن'}</div>` : '';
+        const userProjects = readAssignedProjects(u);
+        const projectInfo = u.role === 'engineer' ? `<div style="font-size:11px;color:var(--text3);margin-top:2px">المشاريع: ${userProjects.length ? userProjects.join('، ') : 'غير معيّن'}</div>` : '';
         const isSelf = u.uid === currentUser?.uid;
         return `<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
           <div>
@@ -1846,9 +2498,23 @@
     }
   }
 
-  function populateProjectDropdown() {
-    const sel = document.getElementById('emp-project');
-    sel.innerHTML = state.projects.map(p => `<option value="${p.name}">${p.name}</option>`).join('') || '<option value="">لا توجد مشاريع</option>';
+  function populateProjectCheckboxes(selectedProjects) {
+    const wrap = document.getElementById('emp-project-checkboxes');
+    if (!state.projects.length) {
+      wrap.innerHTML = '<div style="font-size:12px;color:var(--text3)">لا توجد مشاريع. أضف مشروعًا أولاً.</div>';
+      return;
+    }
+    wrap.innerHTML = state.projects.map(p => {
+      const checked = (selectedProjects || []).includes(p.name) ? 'checked' : '';
+      return `<label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;cursor:pointer">
+        <input type="checkbox" value="${p.name}" ${checked} style="width:auto" />
+        ${p.name}
+      </label>`;
+    }).join('');
+  }
+
+  function getSelectedProjectCheckboxes() {
+    return Array.from(document.querySelectorAll('#emp-project-checkboxes input[type="checkbox"]:checked')).map(cb => cb.value);
   }
 
   function onEmpRoleChange() {
@@ -1859,7 +2525,6 @@
   function openEmployeeModal(idx) {
     document.getElementById('modal-employee').classList.add('open');
     document.getElementById('emp-err').innerHTML = '';
-    populateProjectDropdown();
     const isEdit = idx !== undefined && idx !== null;
     if (isEdit) {
       const u = employeesCache[idx];
@@ -1867,7 +2532,7 @@
       document.getElementById('emp-edit-uid').value = u.uid;
       document.getElementById('emp-name').value = u.name || '';
       document.getElementById('emp-role').value = u.role || 'accountant';
-      document.getElementById('emp-project').value = u.assignedProject || '';
+      populateProjectCheckboxes(readAssignedProjects(u));
       document.getElementById('emp-email-group').style.display = 'none';
       document.getElementById('emp-password-group').style.display = 'none';
     } else {
@@ -1877,6 +2542,7 @@
       document.getElementById('emp-email').value = '';
       document.getElementById('emp-password').value = '';
       document.getElementById('emp-role').value = 'accountant';
+      populateProjectCheckboxes([]);
       document.getElementById('emp-email-group').style.display = '';
       document.getElementById('emp-password-group').style.display = '';
     }
@@ -1888,15 +2554,15 @@
     errEl.innerHTML = '';
     const name = document.getElementById('emp-name').value.trim();
     const role = document.getElementById('emp-role').value;
-    const assignedProject = role === 'engineer' ? document.getElementById('emp-project').value : '';
+    const assignedProjects = role === 'engineer' ? getSelectedProjectCheckboxes() : [];
     const editUid = document.getElementById('emp-edit-uid').value;
 
     if (!name) {
       errEl.innerHTML = '<div class="error-msg">يرجى إدخال اسم الموظف.</div>';
       return;
     }
-    if (role === 'engineer' && !assignedProject) {
-      errEl.innerHTML = '<div class="error-msg">يرجى اختيار المشروع المعيّن للمهندس.</div>';
+    if (role === 'engineer' && !assignedProjects.length) {
+      errEl.innerHTML = '<div class="error-msg">يرجى اختيار مشروع واحد على الأقل للمهندس.</div>';
       return;
     }
 
@@ -1905,8 +2571,8 @@
 
     try {
       if (editUid) {
-        // Update existing employee profile
-        await db.collection('users').doc(editUid).set({ name, role, assignedProject }, { merge: true });
+        // Update existing employee profile (assignedProject removed via merge field deletion for legacy docs)
+        await db.collection('users').doc(editUid).set({ name, role, assignedProjects, assignedProject: firebase.firestore.FieldValue.delete() }, { merge: true });
       } else {
         // Create new employee: Auth account (via secondary app) + Firestore profile
         const email = document.getElementById('emp-email').value.trim();
@@ -1925,7 +2591,7 @@
         const cred = await secondaryAuth.createUserWithEmailAndPassword(email, password);
         const newUid = cred.user.uid;
         await secondaryAuth.signOut();
-        await db.collection('users').doc(newUid).set({ name, email, role, assignedProject });
+        await db.collection('users').doc(newUid).set({ name, email, role, assignedProjects });
       }
       closeModal('employee');
       loadEmployeesList();
@@ -1961,22 +2627,21 @@
       document.getElementById('inv-err').innerHTML = '<div class="error-msg">يرجى تعبئة اسم العميل ورقم الفاتورة والمبلغ وتاريخ الاستحقاق.</div>';
       return;
     }
-    const projectVal = currentUserRole === 'engineer' ? currentUserProject : document.getElementById('inv-project').value.trim();
+    let projectVal = document.getElementById('inv-project').value.trim();
+    if (currentUserRole === 'engineer' && projectVal && !currentUserProjects.includes(projectVal)) projectVal = '';
     const editId = document.getElementById('inv-edit-id').value;
 
     if (editId) {
       // Edit existing invoice
       const inv = state.invoices.find(i => i.id === editId);
       if (!inv) return;
-      if (currentUserRole === 'engineer' && inv.project !== currentUserProject) return;
+      if (currentUserRole === 'engineer' && !currentUserProjects.includes(inv.project)) return;
       Object.assign(inv, { num, client, project: projectVal, amount: Number(amount), issue: document.getElementById('inv-issue').value, due, notes: document.getElementById('inv-notes').value.trim(), updatedBy: currentUserName, updatedAt: new Date().toISOString() });
     } else {
-      state.invoices.push({ id: uid(), num, client, project: projectVal, amount: Number(amount), issue: document.getElementById('inv-issue').value, due, notes: document.getElementById('inv-notes').value.trim(), paid: false, createdBy: currentUserName, createdAt: new Date().toISOString() });
+      state.invoices.push({ id: uid(), num, client, project: projectVal, amount: Number(amount), issue: document.getElementById('inv-issue').value, due, notes: document.getElementById('inv-notes').value.trim(), payments: [], createdBy: currentUserName, createdAt: new Date().toISOString() });
     }
     persist(); renderAll(); closeModal('invoice');
-    const fieldsToClear = ['inv-client','inv-num','inv-amount','inv-due','inv-notes'];
-    if (currentUserRole !== 'engineer') fieldsToClear.push('inv-project');
-    fieldsToClear.forEach(id => document.getElementById(id).value = '');
+    ['inv-client','inv-num','inv-amount','inv-due','inv-notes'].forEach(id => document.getElementById(id).value = '');
   }
 
   function saveExpense() {
@@ -1987,12 +2652,12 @@
       document.getElementById('exp-err').innerHTML = '<div class="error-msg">يرجى تعبئة الوصف والمبلغ والتاريخ.</div>';
       return;
     }
-    const projectVal = currentUserRole === 'engineer' ? currentUserProject : document.getElementById('exp-project').value.trim();
-    state.expenses.push({ id: uid(), desc, amount: Number(amount), date, category: document.getElementById('exp-cat').value, project: projectVal, createdBy: currentUserName, createdAt: new Date().toISOString() });
+    let projectVal = document.getElementById('exp-project').value.trim();
+    if (currentUserRole === 'engineer' && projectVal && !currentUserProjects.includes(projectVal)) projectVal = '';
+    const supplier = document.getElementById('exp-supplier').value.trim();
+    state.expenses.push({ id: uid(), desc, amount: Number(amount), date, category: document.getElementById('exp-cat').value, project: projectVal, supplier, createdBy: currentUserName, createdAt: new Date().toISOString() });
     persist(); renderAll(); closeModal('expense');
-    const fieldsToClear = ['exp-desc','exp-amount'];
-    if (currentUserRole !== 'engineer') fieldsToClear.push('exp-project');
-    fieldsToClear.forEach(id => document.getElementById(id).value = '');
+    ['exp-desc','exp-amount','exp-supplier'].forEach(id => document.getElementById(id).value = '');
   }
 
   function saveProject() {
@@ -2024,8 +2689,41 @@
     if (currentUserRole === 'accountant') return;
     const inv = state.invoices.find(i => i.id === id);
     if (!inv) return;
-    if (currentUserRole === 'engineer' && inv.project !== currentUserProject) return;
-    inv.paid = true; inv.paidBy = currentUserName; inv.paidAt = new Date().toISOString(); persist(); renderAll();
+    if (currentUserRole === 'engineer' && !currentUserProjects.includes(inv.project)) return;
+    const remaining = invoiceRemaining(inv);
+    if (remaining <= 0) return;
+    if (!Array.isArray(inv.payments)) inv.payments = getInvoicePayments(inv).filter(p => p.id !== 'legacy');
+    inv.payments.push({ id: uid(), amount: remaining, date: today(), by: currentUserName, at: new Date().toISOString() });
+    persist(); renderAll();
+  }
+
+  function addInvoicePayment() {
+    const editId = document.getElementById('inv-edit-id').value;
+    const inv = state.invoices.find(i => i.id === editId);
+    if (!inv) return;
+    const amountInput = document.getElementById('inv-payment-amount');
+    const dateInput = document.getElementById('inv-payment-date');
+    const amount = Number(amountInput.value);
+    const date = dateInput.value || today();
+    const remaining = invoiceRemaining(inv);
+    if (!amount || amount <= 0) { alert('يرجى إدخال مبلغ صحيح.'); return; }
+    if (amount > remaining + 0.01) { alert(`المبلغ أكبر من المتبقي (${fmt(remaining)}).`); return; }
+    if (!Array.isArray(inv.payments)) inv.payments = getInvoicePayments(inv).filter(p => p.id !== 'legacy');
+    inv.payments.push({ id: uid(), amount, date, by: currentUserName, at: new Date().toISOString() });
+    persist();
+    renderAll();
+    amountInput.value = '';
+    openInvoiceDetail(editId); // refresh the modal in place to show the new payment
+  }
+
+  function deleteInvoicePayment(invId, paymentId) {
+    const inv = state.invoices.find(i => i.id === invId);
+    if (!inv || !Array.isArray(inv.payments)) return;
+    if (!confirm('حذف هذه الدفعة؟')) return;
+    inv.payments = inv.payments.filter(p => p.id !== paymentId);
+    persist();
+    renderAll();
+    openInvoiceDetail(invId);
   }
 
   function deleteItem(type, id) {
@@ -2033,7 +2731,7 @@
     if (currentUserRole === 'engineer') {
       if (type === 'projects') return;
       const item = state[type].find(i => i.id === id);
-      if (!item || item.project !== currentUserProject) return;
+      if (!item || !currentUserProjects.includes(item.project)) return;
     }
     if (!confirm('هل تريد حذف هذا العنصر؟')) return;
     state[type] = state[type].filter(i => i.id !== id);

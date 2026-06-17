@@ -73,6 +73,7 @@
     .logo svg { width: 22px; height: 22px; }
     .sync-badge { font-size: 12px; color: var(--green); background: var(--green-bg); padding: 3px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
     .sync-badge.saving { color: var(--amber); background: var(--amber-bg); }
+    .sync-badge.offline { color: var(--red); background: var(--red-bg); }
 
     nav { background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; padding: 0 1rem; overflow-x: auto; gap: 4px; scrollbar-width: none; }
     nav::-webkit-scrollbar { display: none; }
@@ -657,7 +658,7 @@
   <div class="modal">
     <div class="modal-title">النسخ الاحتياطية</div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">
-      يتم إنشاء نسخة تلقائية أسبوعيًا (يُحتفظ بآخر 12 نسخة ≈ 3 شهور). يمكنك أيضًا أخذ نسخة فورية أو استرجاع نسخة سابقة، أو استيراد نسخة من ملف.
+      يتم إنشاء نسخة تلقائية أسبوعيًا (يُحتفظ بآخر 12 نسخة ≈ 3 شهور). "معاينة Excel" تفتح محتوى أي نسخة قديمة للاطلاع عليها فقط <strong>بدون أي تأثير على بياناتكم الحالية</strong>. فقط "استرجاع" يستبدل البيانات الحالية بالكامل.
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
       <button class="btn btn-accent btn-sm" onclick="exportFullBackup().then(()=>openBackupsModal())">أخذ نسخة الآن وتنزيلها</button>
@@ -882,6 +883,7 @@
         'auth/invalid-email': 'البريد الإلكتروني غير صالح.',
         'auth/too-many-requests': 'تم تجاوز عدد المحاولات، حاول لاحقاً.',
         'auth/invalid-credential': 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+        'auth/network-request-failed': 'لا يوجد اتصال بالإنترنت. يلزم اتصال مرة واحدة فقط لتسجيل الدخول لأول مرة على هذا الجهاز؛ بعد ذلك سيعمل التطبيق دون إنترنت.',
       };
       errEl.textContent = msgs[e.code] || 'حدث خطأ، حاول مرة أخرى.';
       errEl.classList.add('show');
@@ -1337,13 +1339,23 @@
     setSyncing(false);
   }
 
+  let isOnline = navigator.onLine;
+
   function setSyncing(s) {
     const el = document.getElementById('sync-status');
+    if (!isOnline) {
+      el.className = 'sync-badge offline';
+      el.innerHTML = '<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg> غير متصل — سيُحفظ تلقائيًا عند توفر الإنترنت';
+      return;
+    }
     el.className = 'sync-badge' + (s ? ' saving' : '');
     el.innerHTML = s
       ? '<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg> جارٍ الحفظ…'
       : '<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg> محفوظ';
   }
+
+  window.addEventListener('online', () => { isOnline = true; setSyncing(false); });
+  window.addEventListener('offline', () => { isOnline = false; setSyncing(false); });
 
   // ===== Partial payments =====
   // Reads an invoice's payment history. Falls back to a single synthetic payment
@@ -1896,7 +1908,7 @@
     return `
       </div>
       <div style="text-align:center;color:#999;font-size:11px;padding:10px 0 20px;">
-        تم الإنشاء بواسطة: ${currentUserName} (${ROLE_LABELS[currentUserRole] || currentUserRole})<br>
+        تم الإنشاء بواسطة: ${currentUserName}<br>
         ${fmtDate(now.toISOString().split('T')[0])} — ${now.toLocaleTimeString('ar-EG')}
       </div>
     </div>`;
@@ -2140,7 +2152,6 @@
     const now = new Date();
     return [
       ['تم استخراج هذا التقرير بواسطة', currentUserName],
-      ['الدور', ROLE_LABELS[currentUserRole] || currentUserRole],
       ['التاريخ والوقت', now.toLocaleDateString('ar-EG') + ' — ' + now.toLocaleTimeString('ar-EG')]
     ];
   }
@@ -2334,8 +2345,9 @@
             <div style="font-weight:700;font-size:13px">${fmtDate(b.createdAt.split('T')[0])} <span style="font-size:11px;color:var(--text3)">(${typeLabel})</span></div>
             <div style="font-size:11px;color:var(--text3);margin-top:2px">${counts} — بواسطة ${b.createdBy || '—'}</div>
           </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-sm" onclick="downloadBackupFile(backupsCache[${idx}], 'artash-backup-${b.createdAt.split('T')[0]}.json')">تنزيل</button>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-sm" onclick="downloadBackupFile(backupsCache[${idx}], 'artash-backup-${b.createdAt.split('T')[0]}.json')">تنزيل JSON</button>
+            <button class="btn btn-sm btn-pdf" onclick="previewBackupAsExcel(${idx})">معاينة Excel</button>
             <button class="btn btn-sm btn-danger" onclick="restoreFromBackupIndex(${idx})">استرجاع</button>
           </div>
         </div>`;
@@ -2343,6 +2355,40 @@
     } catch(e) {
       list.innerHTML = '<div class="empty-state">تعذّر تحميل النسخ الاحتياطية.</div>';
     }
+  }
+
+  // Lets the admin inspect a backup's full contents as a spreadsheet WITHOUT touching
+  // the live company data — only "استرجاع" (restore) ever overwrites current data.
+  function previewBackupAsExcel(idx) {
+    const b = backupsCache[idx];
+    if (!b || !b.data) return;
+    const d = b.data;
+    const wb = XLSX.utils.book_new();
+
+    const invRows = (d.invoices || []).map(i => ({
+      'رقم الفاتورة': i.num, 'العميل': i.client, 'المشروع': i.project || '',
+      'المبلغ': Number(i.amount), 'تاريخ الاستحقاق': i.due || '', 'مدفوعة بالكامل؟': i.paid ? 'نعم' : 'لا'
+    }));
+    const expRows = (d.expenses || []).map(e => ({
+      'الوصف': e.desc, 'الفئة': e.category, 'المشروع': e.project || '', 'المورد': e.supplier || '',
+      'المبلغ': Number(e.amount), 'التاريخ': e.date || ''
+    }));
+    const prjRows = (d.projects || []).map(p => ({
+      'المشروع': p.name, 'العميل': p.client || '', 'الميزانية': Number(p.budget) || 0, 'الحالة': p.status || ''
+    }));
+    const clientRows = (d.clients || []).map(c => ({ 'الاسم': c.name, 'الهاتف': c.phone || '', 'العنوان': c.address || '' }));
+    const supplierRows = (d.suppliers || []).map(s => ({ 'الاسم': s.name, 'الهاتف': s.phone || '', 'النوع': s.category || '' }));
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(invRows.length ? invRows : [{ 'لا توجد بيانات': '' }]), 'الفواتير');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(expRows.length ? expRows : [{ 'لا توجد بيانات': '' }]), 'المصروفات');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(prjRows.length ? prjRows : [{ 'لا توجد بيانات': '' }]), 'المشاريع');
+    if (clientRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(clientRows), 'العملاء');
+    if (supplierRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(supplierRows), 'الموردين');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ['نسخة احتياطية بتاريخ', fmtDate(b.createdAt.split('T')[0])],
+      ['هذا ملف معاينة فقط — فتحه لا يغيّر بيانات الشركة الحالية بأي شكل', '']
+    ]), 'معلومات');
+    XLSX.writeFile(wb, `artash-preview-${b.createdAt.split('T')[0]}.xlsx`);
   }
 
   function restoreFromBackupIndex(idx) {

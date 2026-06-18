@@ -276,6 +276,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
       الموردين
     </button>
+    <button id="nav-reports" onclick="showTab('reports', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      التقارير
+    </button>
     <button id="nav-settings" onclick="showTab('settings', this)" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       الإعدادات
@@ -452,10 +456,13 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">المشاريع</span>
-          <button class="btn btn-accent" id="btn-new-project" onclick="openModal('project')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            مشروع جديد
-          </button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-sm" id="btn-new-estimate" onclick="openEstimateModal()">عرض سعر سريع</button>
+            <button class="btn btn-accent" id="btn-new-project" onclick="openModal('project')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              مشروع جديد
+            </button>
+          </div>
         </div>
         <div class="toolbar-row">
           <div class="search-wrap">
@@ -504,6 +511,27 @@
           </div>
         </div>
         <div id="suppliers-list"></div>
+      </div>
+    </div>
+
+    <!-- التقارير (المدير والمحاسب) -->
+    <div id="tab-reports" class="section">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">التقرير المحاسبي / الضريبي</span>
+        </div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">يلخّص هذا التقرير الإيرادات والمصروفات خلال فترة محددة، جاهزًا لتسليمه لمحاسب خارجي أو لأغراض ضريبية.</p>
+        <div class="form-grid">
+          <div class="form-group"><label>من تاريخ</label><input type="date" id="report-from-date" /></div>
+          <div class="form-group"><label>إلى تاريخ</label><input type="date" id="report-to-date" /></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <button class="btn btn-sm" onclick="setReportRangeThisMonth()">الشهر الحالي</button>
+          <button class="btn btn-sm" onclick="setReportRangeThisYear()">السنة الحالية</button>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-accent" onclick="exportTaxReportPDF()">تصدير التقرير</button>
+        </div>
       </div>
     </div>
 
@@ -656,6 +684,7 @@
       <div class="form-group"><label>العميل</label><input id="prj-client" placeholder="اسم العميل" /></div>
       <div class="form-group"><label>الميزانية (جنيه)</label><input id="prj-budget" type="number" placeholder="0" /></div>
       <div class="form-group"><label>تاريخ البدء</label><input id="prj-start" type="date" /></div>
+      <div class="form-group"><label>تاريخ التسليم المتوقع</label><input id="prj-expected-delivery" type="date" /></div>
       <div class="form-group full"><label>الحالة</label>
         <select id="prj-status">
           <option value="نشط">نشط</option>
@@ -788,6 +817,42 @@
   </div>
 </div>
 
+<!-- لوحة توقيع العميل -->
+<div class="modal-overlay" id="modal-signature">
+  <div class="modal">
+    <div class="modal-title">توقيع العميل</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:10px;">اطلب من العميل التوقيع بإصبعه داخل الإطار أدناه.</p>
+    <div style="background:#fff;border:2px dashed var(--border2);border-radius:var(--radius-sm);overflow:hidden;touch-action:none;">
+      <canvas id="signature-canvas" width="460" height="220" style="width:100%;height:220px;display:block;"></canvas>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" onclick="submitSignature()">حفظ والمتابعة</button>
+      <button class="btn" onclick="clearSignatureCanvas()">مسح</button>
+      <button class="btn" onclick="skipSignature()">تخطي</button>
+    </div>
+  </div>
+</div>
+
+<!-- حاسبة عرض سعر سريع -->
+<div class="modal-overlay" id="modal-estimate">
+  <div class="modal">
+    <div class="modal-title">عرض سعر سريع</div>
+    <div class="form-grid">
+      <div class="form-group full"><label>اسم العميل</label><input id="est-client" placeholder="اسم العميل (اختياري)" /></div>
+    </div>
+    <div id="estimate-rows" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;"></div>
+    <button class="btn btn-sm" style="margin-top:8px;" onclick="addEstimateRow()">+ إضافة بند</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
+      <span style="font-size:14px;font-weight:700;">الإجمالي</span>
+      <span id="estimate-total" style="font-size:18px;font-weight:700;color:var(--accent)">٠</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" onclick="exportEstimatePDF()">تصدير PDF</button>
+      <button class="btn" onclick="closeModal('estimate')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ===== Firebase Setup =====
   const firebaseConfig = {
@@ -887,6 +952,7 @@
     document.getElementById('nav-dashboard').style.display = isEngineer ? 'none' : '';
     document.getElementById('nav-clients').style.display = isEngineer ? 'none' : '';
     document.getElementById('nav-suppliers').style.display = isEngineer ? 'none' : '';
+    document.getElementById('nav-reports').style.display = isEngineer ? 'none' : '';
     // Engineers can see the Projects tab, but renderProjects() restricts it to their own project
 
     // Add/create buttons
@@ -898,6 +964,8 @@
     if (newInvoiceBtn) newInvoiceBtn.style.display = isAccountant ? 'none' : '';
     if (newExpenseBtn) newExpenseBtn.style.display = isAccountant ? 'none' : '';
     if (newProjectBtn) newProjectBtn.style.display = (isAccountant || isEngineer) ? 'none' : '';
+    const newEstimateBtn = document.getElementById('btn-new-estimate');
+    if (newEstimateBtn) newEstimateBtn.style.display = isAccountant ? 'none' : '';
     if (newClientBtn) newClientBtn.style.display = isAccountant ? 'none' : '';
     if (newSupplierBtn) newSupplierBtn.style.display = isAccountant ? 'none' : '';
 
@@ -1034,6 +1102,7 @@
     document.getElementById('tab-' + tab).classList.add('visible');
     btn.classList.add('active');
     if (tab === 'settings') { loadEmployeesList(); loadActivityLog(true); }
+    if (tab === 'reports' && !document.getElementById('report-from-date').value) setReportRangeThisMonth();
   }
 
   function clearInvoiceFilters() {
@@ -1120,6 +1189,7 @@
       document.getElementById('prj-save-btn').style.display = '';
       setFormReadonly('project', false);
       document.getElementById('prj-start').value = today();
+      document.getElementById('prj-expected-delivery').value = '';
       document.getElementById('prj-err').innerHTML = '';
     }
   }
@@ -1218,6 +1288,7 @@
     document.getElementById('prj-client').value = p.client || '';
     document.getElementById('prj-budget').value = p.budget || '';
     document.getElementById('prj-start').value = p.start || '';
+    document.getElementById('prj-expected-delivery').value = p.expectedDelivery || '';
     document.getElementById('prj-status').value = p.status || 'نشط';
 
     renderProjectFinancials(p);
@@ -1302,12 +1373,22 @@
     const expenses = state.expenses.filter(e => e.project === p.name);
     const totalInv = invoices.reduce((s, i) => s + Number(i.amount), 0);
     const totalExp = expenses.reduce((s, e) => s + Number(e.amount), 0);
+    const netProfit = totalInv - totalExp;
     const pct = p.budget > 0 ? Math.round((totalExp / p.budget) * 100) : null;
+
+    let deliveryWarning = '';
+    if (p.expectedDelivery && p.status !== 'مكتمل' && new Date(p.expectedDelivery) < new Date()) {
+      const daysLate = Math.ceil((new Date() - new Date(p.expectedDelivery)) / (1000*60*60*24));
+      deliveryWarning = `<div style="display:flex;justify-content:space-between;margin-top:4px;color:var(--red)"><span>⚠️ متأخر عن التسليم</span><strong>${daysLate} يوم</strong></div>`;
+    }
 
     document.getElementById('prj-financial-summary').innerHTML = `
       <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>إجمالي الفواتير</span><strong>${fmt(totalInv)}</strong></div>
       <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>إجمالي المصروفات</span><strong style="color:var(--red)">${fmt(totalExp)}</strong></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>صافي الربح التقديري</span><strong style="color:${netProfit >= 0 ? 'var(--green)' : 'var(--red)'}">${fmt(netProfit)}</strong></div>
       ${p.budget > 0 ? `<div style="display:flex;justify-content:space-between;"><span>الميزانية</span><strong>${fmt(p.budget)} ${pct !== null ? `(${pct}% منفق)` : ''}</strong></div>` : ''}
+      ${p.expectedDelivery ? `<div style="display:flex;justify-content:space-between;margin-top:4px;"><span>التسليم المتوقع</span><strong>${fmtDate(p.expectedDelivery)}</strong></div>` : ''}
+      ${deliveryWarning}
     `;
 
     const canEdit = currentUserRole !== 'accountant';
@@ -1514,6 +1595,29 @@
       }
     }
 
+    const isLateProject = p => p.expectedDelivery && p.status !== 'مكتمل' && new Date(p.expectedDelivery) < now;
+    if (currentUserRole !== 'engineer') {
+      const lateProjects = state.projects.filter(isLateProject);
+      if (lateProjects.length) {
+        alerts.push({
+          color: 'red', icon: 'clock',
+          title: `${lateProjects.length} مشروع تأخر عن موعد التسليم المتوقع`,
+          sub: lateProjects.map(p => p.name).join('، '),
+          onclick: `showTab('projects', document.getElementById('nav-projects'))`
+        });
+      }
+    } else if (currentUserProjects.length) {
+      const lateOwn = state.projects.filter(p => currentUserProjects.includes(p.name) && isLateProject(p));
+      if (lateOwn.length) {
+        alerts.push({
+          color: 'red', icon: 'clock',
+          title: lateOwn.length === 1 ? 'مشروعك تأخر عن موعد التسليم المتوقع' : `${lateOwn.length} من مشاريعك تأخرت عن موعد التسليم`,
+          sub: lateOwn.map(p => p.name).join('، '),
+          onclick: `showTab('projects', document.getElementById('nav-projects'))`
+        });
+      }
+    }
+
     const icons = {
       'alert-circle': '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
       'clock': '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
@@ -1705,11 +1809,14 @@
     el.innerHTML = list.map(p => {
       const pinv = state.invoices.filter(i => i.project === p.name).reduce((s, i) => s + Number(i.amount), 0);
       const pexp = state.expenses.filter(e => e.project === p.name).reduce((s, e) => s + Number(e.amount), 0);
+      const pProfit = pinv - pexp;
       const pct = p.budget > 0 ? Math.min(100, Math.round(pexp / p.budget * 100)) : 0;
+      const isLate = p.expectedDelivery && p.status !== 'مكتمل' && new Date(p.expectedDelivery) < new Date();
       return `<div class="project-item" style="cursor:pointer" onclick="openProjectDetail('${p.id}')">
         <div style="display:flex;justify-content:space-between;align-items:start">
           <div style="display:flex;align-items:center;gap:8px" onclick="event.stopPropagation()">
             <span class="badge ${stMap[p.status]||'badge-hold'}">${p.status}</span>
+            ${isLate ? `<span class="badge badge-overdue">⚠️ متأخر</span>` : ''}
             ${canEditProjects ? `<button class="btn btn-sm btn-danger" onclick="deleteItem('projects','${p.id}')">حذف</button>` : ''}
           </div>
           <div style="text-align:right">
@@ -1720,11 +1827,11 @@
         <div class="project-stats">
           <div style="text-align:right"><div class="pstat-label">المنفق</div><div class="pstat-val" style="color:var(--red)">${fmt(pexp)}</div></div>
           <div style="text-align:right"><div class="pstat-label">الفواتير</div><div class="pstat-val" style="color:var(--green)">${fmt(pinv)}</div></div>
-          <div style="text-align:right"><div class="pstat-label">الميزانية</div><div class="pstat-val">${p.budget > 0 ? fmt(p.budget) : '—'}</div></div>
+          <div style="text-align:right"><div class="pstat-label">صافي الربح</div><div class="pstat-val" style="color:${pProfit>=0?'var(--green)':'var(--red)'}">${fmt(pProfit)}</div></div>
         </div>
         ${p.budget > 0 ? `
           <div class="progress-bg"><div class="progress-fill" style="width:${pct}%;background:${pct>80?'var(--red)':'var(--green)'}"></div></div>
-          <div style="font-size:11px;color:var(--text3);margin-top:4px;text-align:right">${pct}% من الميزانية منفق</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;text-align:right">${pct}% من الميزانية (${fmt(p.budget)}) منفق</div>
         ` : ''}
       </div>`;
     }).join('');
@@ -1993,6 +2100,215 @@
     return `${location.origin}${location.pathname}?invoice=${invoiceId}`;
   }
 
+  // ===== Signature pad (used before generating receipts/handover documents) =====
+  let signatureCallback = null;
+  let sigCtx = null;
+  let sigDrawing = false;
+  let sigHasStroke = false;
+
+  function sigPos(canvas, e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
+  }
+
+  function initSignatureCanvas() {
+    const canvas = document.getElementById('signature-canvas');
+    sigCtx = canvas.getContext('2d');
+    sigCtx.fillStyle = '#fff';
+    sigCtx.fillRect(0, 0, canvas.width, canvas.height);
+    sigCtx.strokeStyle = '#1a1a2e';
+    sigCtx.lineWidth = 2.5;
+    sigCtx.lineCap = 'round';
+    sigHasStroke = false;
+
+    const start = e => { e.preventDefault(); sigDrawing = true; sigHasStroke = true; const p = sigPos(canvas, e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); };
+    const move = e => { if (!sigDrawing) return; e.preventDefault(); const p = sigPos(canvas, e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); };
+    const end = () => { sigDrawing = false; };
+
+    canvas.onmousedown = start; canvas.onmousemove = move; canvas.onmouseup = end; canvas.onmouseleave = end;
+    canvas.ontouchstart = start; canvas.ontouchmove = move; canvas.ontouchend = end;
+  }
+
+  function clearSignatureCanvas() {
+    if (!sigCtx) return;
+    const canvas = document.getElementById('signature-canvas');
+    sigCtx.fillStyle = '#fff';
+    sigCtx.fillRect(0, 0, canvas.width, canvas.height);
+    sigHasStroke = false;
+  }
+
+  // Opens the signature pad; callback receives a PNG data URL, or null if skipped/empty.
+  function openSignaturePad(callback) {
+    signatureCallback = callback;
+    document.getElementById('modal-signature').classList.add('open');
+    setTimeout(initSignatureCanvas, 50);
+  }
+
+  function submitSignature() {
+    const canvas = document.getElementById('signature-canvas');
+    const dataUrl = sigHasStroke ? canvas.toDataURL('image/png') : null;
+    closeModal('signature');
+    const cb = signatureCallback; signatureCallback = null;
+    if (cb) cb(dataUrl);
+  }
+
+  function skipSignature() {
+    closeModal('signature');
+    const cb = signatureCallback; signatureCallback = null;
+    if (cb) cb(null);
+  }
+
+  // ===== Quick pricing estimator (ephemeral — not saved to Firestore, pure calculator + PDF export) =====
+
+  let estimateRowCount = 0;
+
+  function openEstimateModal() {
+    document.getElementById('modal-estimate').classList.add('open');
+    document.getElementById('est-client').value = '';
+    document.getElementById('estimate-rows').innerHTML = '';
+    estimateRowCount = 0;
+    addEstimateRow();
+    addEstimateRow();
+  }
+
+  function addEstimateRow() {
+    estimateRowCount++;
+    const rowId = estimateRowCount;
+    const wrap = document.getElementById('estimate-rows');
+    const row = document.createElement('div');
+    row.id = `est-row-${rowId}`;
+    row.style = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;';
+    row.innerHTML = `
+      <input placeholder="الوصف" style="flex:2;min-width:110px" oninput="updateEstimateTotal()" id="est-desc-${rowId}" />
+      <input type="number" placeholder="الكمية" value="1" style="flex:1;min-width:60px" oninput="updateEstimateTotal()" id="est-qty-${rowId}" />
+      <input type="number" placeholder="السعر" style="flex:1;min-width:80px" oninput="updateEstimateTotal()" id="est-price-${rowId}" />
+      <button class="btn btn-sm btn-danger" onclick="document.getElementById('est-row-${rowId}').remove(); updateEstimateTotal();">×</button>
+    `;
+    wrap.appendChild(row);
+  }
+
+  function getEstimateRows() {
+    const wrap = document.getElementById('estimate-rows');
+    return Array.from(wrap.children).map(row => {
+      const id = row.id.replace('est-row-', '');
+      const desc = document.getElementById(`est-desc-${id}`).value.trim();
+      const qty = Number(document.getElementById(`est-qty-${id}`).value) || 0;
+      const price = Number(document.getElementById(`est-price-${id}`).value) || 0;
+      return { desc, qty, price, total: qty * price };
+    }).filter(r => r.desc || r.qty || r.price);
+  }
+
+  function updateEstimateTotal() {
+    const total = getEstimateRows().reduce((s, r) => s + r.total, 0);
+    document.getElementById('estimate-total').textContent = fmt(total);
+  }
+
+  async function exportEstimatePDF() {
+    const rows = getEstimateRows();
+    if (!rows.length) { alert('يرجى إضافة بند واحد على الأقل.'); return; }
+    const client = document.getElementById('est-client').value.trim();
+    const total = rows.reduce((s, r) => s + r.total, 0);
+
+    let html = pdfWrapStart('عرض سعر');
+    html += `<div style="font-size:22px;font-weight:700;margin-bottom:6px;">عرض سعر</div>`;
+    html += `<div style="font-size:13px;color:#888;margin-bottom:16px;">${fmtDate(today())}</div>`;
+    if (client) html += rowHtml('العميل', client);
+    html += `<table style="width:100%;border-collapse:collapse;margin-top:14px;font-size:13px;">
+      <thead><tr style="background:#f7f7f9;">
+        <th style="padding:8px;text-align:right;">الوصف</th>
+        <th style="padding:8px;text-align:right;">الكمية</th>
+        <th style="padding:8px;text-align:right;">السعر</th>
+        <th style="padding:8px;text-align:right;">الإجمالي</th>
+      </tr></thead>
+      <tbody>`;
+    rows.forEach(r => {
+      html += `<tr>
+        <td style="padding:8px;border-bottom:1px solid #eee;">${r.desc || '—'}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee;">${r.qty}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee;">${fmt(r.price)}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee;font-weight:700;">${fmt(r.total)}</td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+    html += `<div style="display:flex;justify-content:space-between;margin-top:16px;border-top:2px solid #1a1a2e;padding-top:10px;">
+      <span style="font-size:16px;font-weight:700;">الإجمالي</span>
+      <span style="font-size:18px;font-weight:700;">${fmt(total)}</span>
+    </div>`;
+    html += `<div style="margin-top:20px;font-size:11px;color:#999;">هذا عرض سعر مبدئي وغير ملزم، وقد يخضع للتعديل حسب الاتفاق النهائي.</div>`;
+    html += pdfWrapEnd();
+
+    await renderHtmlToPdf(html, `quote-${client || 'عرض-سعر'}-${today()}.pdf`);
+  }
+
+  // ===== Tax / accounting report =====
+
+  function setReportRangeThisMonth() {
+    const now = new Date();
+    const first = new Date(now.getFullYear(), now.getMonth(), 1);
+    document.getElementById('report-from-date').value = first.toISOString().split('T')[0];
+    document.getElementById('report-to-date').value = today();
+  }
+  function setReportRangeThisYear() {
+    const now = new Date();
+    const first = new Date(now.getFullYear(), 0, 1);
+    document.getElementById('report-from-date').value = first.toISOString().split('T')[0];
+    document.getElementById('report-to-date').value = today();
+  }
+
+  async function exportTaxReportPDF() {
+    const fromStr = document.getElementById('report-from-date').value;
+    const toStr = document.getElementById('report-to-date').value;
+    if (!fromStr || !toStr) { alert('يرجى تحديد الفترة من وإلى.'); return; }
+    const from = new Date(fromStr);
+    const to = new Date(toStr);
+    to.setHours(23, 59, 59, 999);
+
+    // Accrual basis: invoices issued within the period.
+    const invoicesInRange = state.invoices.filter(i => i.issue && new Date(i.issue) >= from && new Date(i.issue) <= to);
+    const totalInvoiced = invoicesInRange.reduce((s, i) => s + Number(i.amount), 0);
+
+    // Cash basis: payments actually received within the period (regardless of which invoice/date they belong to).
+    let totalCollected = 0;
+    state.invoices.forEach(i => {
+      getInvoicePayments(i).forEach(p => {
+        if (p.date && new Date(p.date) >= from && new Date(p.date) <= to) totalCollected += Number(p.amount);
+      });
+    });
+
+    const expensesInRange = state.expenses.filter(e => e.date && new Date(e.date) >= from && new Date(e.date) <= to);
+    const totalExpenses = expensesInRange.reduce((s, e) => s + Number(e.amount), 0);
+    const byCategory = {};
+    expensesInRange.forEach(e => { byCategory[e.category] = (byCategory[e.category] || 0) + Number(e.amount); });
+
+    const netAccrual = totalInvoiced - totalExpenses;
+    const netCash = totalCollected - totalExpenses;
+
+    let html = pdfWrapStart('تقرير محاسبي / ضريبي');
+    html += `<div style="font-size:20px;font-weight:700;margin-bottom:6px;">ملخص الفترة المالية</div>`;
+    html += `<div style="font-size:13px;color:#888;margin-bottom:16px;">من ${fmtDate(fromStr)} إلى ${fmtDate(toStr)}</div>`;
+    html += `<div style="height:1px;background:#ddd;margin-bottom:16px;"></div>`;
+
+    html += `<div style="font-weight:700;color:#555;margin-bottom:8px;">الإيرادات</div>`;
+    html += rowHtml('إجمالي الفواتير المُصدرة (أساس الاستحقاق)', fmt(totalInvoiced));
+    html += rowHtml('إجمالي المُحصّل فعليًا (أساس نقدي)', fmt(totalCollected));
+
+    html += `<div style="font-weight:700;color:#555;margin:18px 0 8px;">المصروفات حسب الفئة</div>`;
+    Object.keys(byCategory).forEach(cat => { html += rowHtml(cat, fmt(byCategory[cat])); });
+    html += rowHtml('<strong>إجمالي المصروفات</strong>', `<strong>${fmt(totalExpenses)}</strong>`);
+
+    html += `<div style="height:1px;background:#ddd;margin:18px 0;"></div>`;
+    html += `<div style="font-weight:700;color:#555;margin-bottom:8px;">صافي الربح التقديري</div>`;
+    html += rowHtml('على أساس الاستحقاق (فواتير مُصدرة − مصروفات)', `<strong style="color:${netAccrual>=0?'#2ecc8a':'#e85555'}">${fmt(netAccrual)}</strong>`);
+    html += rowHtml('على أساس نقدي (محصّل فعليًا − مصروفات)', `<strong style="color:${netCash>=0?'#2ecc8a':'#e85555'}">${fmt(netCash)}</strong>`);
+
+    html += `<div style="margin-top:20px;font-size:11px;color:#999;line-height:1.7;">هذا تقرير تقديري داخلي وليس مستندًا رسميًا معتمدًا من مصلحة الضرائب؛ يُنصح بمراجعته مع محاسب قانوني قبل أي استخدام رسمي.</div>`;
+    html += pdfWrapEnd();
+
+    await renderHtmlToPdf(html, `tax-report-${fromStr}-to-${toStr}.pdf`);
+  }
+
   function pdfWrapEnd() {
     const now = new Date();
     return `
@@ -2107,6 +2423,25 @@
   }
 
   // Generates a signed-style receipt for a single payment (useful to hand to the client on-site)
+  // Builds the two-box signature row at the bottom of a receipt/handover PDF.
+  // If a captured signature image is provided, it's shown above the client's line;
+  // otherwise it falls back to a blank line for an in-person pen signature.
+  function signatureBlockHtml(companyLabel, clientSignatureDataUrl) {
+    const clientBox = clientSignatureDataUrl
+      ? `<img src="${clientSignatureDataUrl}" style="height:50px;display:block;margin:0 auto 4px;" />`
+      : `<div style="height:50px;"></div>`;
+    return `<div style="display:flex;justify-content:space-between;gap:20px;">
+      <div style="flex:1;text-align:center;">
+        <div style="height:50px;"></div>
+        <div style="border-top:1px solid #999;padding-top:8px;font-size:13px;color:#555;">${companyLabel}</div>
+      </div>
+      <div style="flex:1;text-align:center;">
+        ${clientBox}
+        <div style="border-top:1px solid #999;padding-top:8px;font-size:13px;color:#555;">توقيع المستلم (العميل)</div>
+      </div>
+    </div>`;
+  }
+
   async function exportPaymentReceiptPDF(invId, paymentId) {
     const inv = state.invoices.find(i => i.id === invId);
     if (!inv) return;
@@ -2114,26 +2449,20 @@
     const payment = getInvoicePayments(inv).find(p => p.id === paymentId);
     if (!payment) return;
 
-    let html = pdfWrapStart('إيصال استلام دفعة');
-    html += `<div style="font-size:22px;font-weight:700;margin-bottom:16px;">إيصال استلام مبلغ</div>`;
-    html += `<div style="height:1px;background:#ddd;margin-bottom:16px;"></div>`;
-    html += rowHtml('استلمنا من السيد/ة', inv.client);
-    html += rowHtml('مبلغ وقدره', `<strong>${fmt(payment.amount)}</strong>`);
-    html += rowHtml('وذلك عن', `فاتورة رقم ${inv.num}${inv.project ? ' — مشروع ' + inv.project : ''}`);
-    html += rowHtml('تاريخ الاستلام', fmtDate(payment.date));
-    html += rowHtml('المتبقي على الفاتورة بعد هذه الدفعة', fmt(invoiceRemaining(inv)));
-    html += `<div style="height:60px;"></div>`;
-    html += `<div style="display:flex;justify-content:space-between;gap:20px;">
-      <div style="flex:1;text-align:center;">
-        <div style="border-top:1px solid #999;padding-top:8px;font-size:13px;color:#555;">توقيع المُسلِّم (${payment.by || currentUserName})</div>
-      </div>
-      <div style="flex:1;text-align:center;">
-        <div style="border-top:1px solid #999;padding-top:8px;font-size:13px;color:#555;">توقيع المستلم (العميل)</div>
-      </div>
-    </div>`;
-    html += pdfWrapEnd();
-
-    await renderHtmlToPdf(html, `receipt-${inv.num}-${payment.date}.pdf`);
+    openSignaturePad(async (sigDataUrl) => {
+      let html = pdfWrapStart('إيصال استلام دفعة');
+      html += `<div style="font-size:22px;font-weight:700;margin-bottom:16px;">إيصال استلام مبلغ</div>`;
+      html += `<div style="height:1px;background:#ddd;margin-bottom:16px;"></div>`;
+      html += rowHtml('استلمنا من السيد/ة', inv.client);
+      html += rowHtml('مبلغ وقدره', `<strong>${fmt(payment.amount)}</strong>`);
+      html += rowHtml('وذلك عن', `فاتورة رقم ${inv.num}${inv.project ? ' — مشروع ' + inv.project : ''}`);
+      html += rowHtml('تاريخ الاستلام', fmtDate(payment.date));
+      html += rowHtml('المتبقي على الفاتورة بعد هذه الدفعة', fmt(invoiceRemaining(inv)));
+      html += `<div style="height:30px;"></div>`;
+      html += signatureBlockHtml(`توقيع المُسلِّم (${payment.by || currentUserName})`, sigDataUrl);
+      html += pdfWrapEnd();
+      await renderHtmlToPdf(html, `receipt-${inv.num}-${payment.date}.pdf`);
+    });
   }
 
   // Generates a generic project handover / delivery receipt, signed by both the company rep and the client.
@@ -2145,28 +2474,22 @@
     const desc = prompt('وصف مختصر لما يخص هذا التسليم (مثال: تسليم المرحلة الأولى من أعمال البناء):', '');
     if (desc === null) return;
 
-    let html = pdfWrapStart('إيصال تسليم مشروع');
-    html += `<div style="font-size:22px;font-weight:700;margin-bottom:16px;">إيصال تسليم</div>`;
-    html += `<div style="height:1px;background:#ddd;margin-bottom:16px;"></div>`;
-    html += rowHtml('المشروع', p.name);
-    html += rowHtml('العميل', p.client || '—');
-    html += rowHtml('تاريخ التسليم', fmtDate(today()));
-    if (desc) {
-      html += `<div style="margin-top:16px;"><div style="font-weight:700;color:#555;margin-bottom:6px;">تفاصيل التسليم</div><div style="background:#f7f7f9;padding:12px;border-radius:8px;font-size:13px;line-height:1.8;">${desc.replace(/\n/g,'<br>')}</div></div>`;
-    }
-    html += `<div style="margin-top:20px;font-size:13px;color:#555;line-height:1.8;">يؤكد الطرفان أدناه استلام وتسليم ما ذُكر أعلاه في حالة جيدة وبدون تحفظات، إلا ما يُذكر صريحًا في خانة "تفاصيل التسليم".</div>`;
-    html += `<div style="height:60px;"></div>`;
-    html += `<div style="display:flex;justify-content:space-between;gap:20px;">
-      <div style="flex:1;text-align:center;">
-        <div style="border-top:1px solid #999;padding-top:8px;font-size:13px;color:#555;">توقيع عن الشركة (${currentUserName})</div>
-      </div>
-      <div style="flex:1;text-align:center;">
-        <div style="border-top:1px solid #999;padding-top:8px;font-size:13px;color:#555;">توقيع العميل</div>
-      </div>
-    </div>`;
-    html += pdfWrapEnd();
-
-    await renderHtmlToPdf(html, `handover-${p.name}.pdf`);
+    openSignaturePad(async (sigDataUrl) => {
+      let html = pdfWrapStart('إيصال تسليم مشروع');
+      html += `<div style="font-size:22px;font-weight:700;margin-bottom:16px;">إيصال تسليم</div>`;
+      html += `<div style="height:1px;background:#ddd;margin-bottom:16px;"></div>`;
+      html += rowHtml('المشروع', p.name);
+      html += rowHtml('العميل', p.client || '—');
+      html += rowHtml('تاريخ التسليم', fmtDate(today()));
+      if (desc) {
+        html += `<div style="margin-top:16px;"><div style="font-weight:700;color:#555;margin-bottom:6px;">تفاصيل التسليم</div><div style="background:#f7f7f9;padding:12px;border-radius:8px;font-size:13px;line-height:1.8;">${desc.replace(/\n/g,'<br>')}</div></div>`;
+      }
+      html += `<div style="margin-top:20px;font-size:13px;color:#555;line-height:1.8;">يؤكد الطرفان أدناه استلام وتسليم ما ذُكر أعلاه في حالة جيدة وبدون تحفظات، إلا ما يُذكر صريحًا في خانة "تفاصيل التسليم".</div>`;
+      html += `<div style="height:30px;"></div>`;
+      html += signatureBlockHtml(`توقيع عن الشركة (${currentUserName})`, sigDataUrl);
+      html += pdfWrapEnd();
+      await renderHtmlToPdf(html, `handover-${p.name}.pdf`);
+    });
   }
 
   async function exportInvoicesPDF() {
@@ -2936,6 +3259,7 @@
       client: document.getElementById('prj-client').value.trim(),
       budget: Number(document.getElementById('prj-budget').value) || 0,
       start: document.getElementById('prj-start').value,
+      expectedDelivery: document.getElementById('prj-expected-delivery').value,
       status: document.getElementById('prj-status').value
     };
     if (editId) {

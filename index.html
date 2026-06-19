@@ -241,6 +241,10 @@
       <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>
       محفوظ
     </div>
+    <div style="flex:1;max-width:280px;position:relative;">
+      <input id="global-search" type="text" placeholder="بحث شامل…" oninput="runGlobalSearch(this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--text);outline:none;font-family:'Cairo',sans-serif;" />
+      <div id="global-search-results" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,0.25);z-index:9999;max-height:340px;overflow-y:auto;"></div>
+    </div>
     <div class="user-bar">
       <button class="btn-logout" id="theme-toggle-btn" onclick="toggleTheme()" title="تبديل المظهر" style="padding:6px;display:flex;align-items:center;justify-content:center;">
         <svg id="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -279,6 +283,10 @@
     <button id="nav-reports" onclick="showTab('reports', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       التقارير
+    </button>
+    <button id="nav-quotes" onclick="showTab('quotes', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      عروض الأسعار
     </button>
     <button id="nav-settings" onclick="showTab('settings', this)" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -323,6 +331,14 @@
         </div>
         <div style="position:relative;height:240px;">
           <canvas id="budget-chart"></canvas>
+        </div>
+      </div>
+      <div class="card" id="trend-chart-card">
+        <div class="card-header">
+          <span class="card-title">الإيرادات والمصروفات شهريًا</span>
+        </div>
+        <div style="position:relative;height:220px;">
+          <canvas id="trend-chart"></canvas>
         </div>
       </div>
       <div class="card">
@@ -535,6 +551,26 @@
       </div>
     </div>
 
+    <!-- عروض الأسعار -->
+    <div id="tab-quotes" class="section">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">سجل عروض الأسعار</span>
+          <button class="btn btn-accent" id="btn-new-quote" onclick="openEstimateModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            عرض سعر جديد
+          </button>
+        </div>
+        <div class="toolbar-row">
+          <div class="search-wrap">
+            <input type="text" class="search-input" id="quotes-search" placeholder="بحث بالعميل أو الوصف…" oninput="renderQuotes()" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+        <div id="quotes-list"></div>
+      </div>
+    </div>
+
     <!-- الإعدادات (للمدير فقط) -->
     <div id="tab-settings" class="section">
       <div class="card">
@@ -550,6 +586,24 @@
             <input type="file" id="logo-file-input" accept="image/*" style="display:none" onchange="uploadLogo(event)" />
             <button class="btn btn-sm btn-danger" onclick="removeLogo()">إزالة الشعار</button>
           </div>
+        </div>
+      </div>
+
+      <!-- IT-only: invisible to regular admin -->
+      <div class="card" id="it-update-section" style="display:none;border:1px solid rgba(91,141,238,0.4);background:rgba(91,141,238,0.05);">
+        <div class="card-header"><span class="card-title" style="color:var(--blue)">🛠️ أدوات IT (حصرية)</span></div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">هذا القسم ظاهر لـ IT فقط وغير مرئي للمدير أو بقية الأدوار.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-sm" style="background:var(--blue-bg);color:var(--blue);" onclick="forceAppUpdate()">🔄 تحديث التطبيق (Force Refresh)</button>
+          <button class="btn btn-sm btn-danger" onclick="clearAppCache()">🗑️ مسح الكاش وإعادة التشغيل</button>
+        </div>
+        <div id="it-update-log" style="margin-top:10px;font-size:12px;color:var(--text3);"></div>
+        <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;">وضع الصيانة</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">عند تفعيله، يظهر لغير IT شاشة "التطبيق تحت الصيانة مؤقتًا" بدلاً من بياناتهم — بما في ذلك المدير. مفيد عند إجراء تحديثات أو إعادة هيكلة بيانات.</p>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="btn btn-sm" id="maintenance-toggle-btn" onclick="toggleMaintenanceMode()">جارٍ التحميل…</button>
+          <span id="maintenance-status-label" style="font-size:13px;color:var(--text2)"></span>
         </div>
       </div>
 
@@ -598,7 +652,7 @@
     <div id="inv-err"></div>
     <div class="form-grid">
       <div class="form-group"><label>اسم العميل *</label><input id="inv-client" list="clients-datalist" placeholder="مثال: مجموعة المنصور" /><datalist id="clients-datalist"></datalist></div>
-      <div class="form-group"><label>رقم الفاتورة *</label><input id="inv-num" placeholder="INV-001" /></div>
+      <div class="form-group"><label>رقم الفاتورة * <button type="button" onclick="autoFillInvoiceNum()" style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);cursor:pointer;margin-right:4px;">ترقيم تلقائي</button></label><input id="inv-num" placeholder="INV-001" /></div>
       <div class="form-group full"><label>المشروع</label><select id="inv-project"><option value="">— بدون مشروع —</option></select></div>
       <div class="form-group"><label>المبلغ (جنيه) *</label><input id="inv-amount" type="number" placeholder="0" /></div>
       <div class="form-group"><label>تاريخ الإصدار</label><input id="inv-issue" type="date" /></div>
@@ -752,7 +806,8 @@
       <div class="form-group full" id="emp-password-group"><label>كلمة المرور *</label><input id="emp-password" type="password" placeholder="6 أحرف على الأقل" /></div>
       <div class="form-group full"><label>الدور *</label>
         <select id="emp-role" onchange="onEmpRoleChange()">
-          <option value="admin">مدير / IT (صلاحيات كاملة)</option>
+          <option value="admin">مدير (صلاحيات كاملة)</option>
+          <option value="it">IT / تقنية المعلومات (مدير + أدوات تقنية حصرية)</option>
           <option value="accountant">محاسب (عرض فقط)</option>
           <option value="engineer">مهندس ميداني</option>
         </select>
@@ -897,9 +952,14 @@
 
   const ROLE_LABELS = {
     admin: 'مدير',
+    it: 'IT / تقنية المعلومات',
     accountant: 'محاسب',
     engineer: 'مهندس ميداني'
   };
+
+  // IT role has every admin permission, plus exclusive IT-only tools.
+  // Use this helper everywhere instead of checking for 'admin' alone.
+  const isAdminOrIT = () => currentUserRole === 'admin' || currentUserRole === 'it';
 
   // Reads assignedProjects (new array field), falling back to the older
   // singular assignedProject string field for users created before this update.
@@ -934,6 +994,7 @@
       document.getElementById('user-display').textContent = `${currentUserName} (${ROLE_LABELS[currentUserRole] || currentUserRole})`;
       document.getElementById('login-screen').classList.add('hidden');
       applyRolePermissions();
+      if (currentUserRole !== 'it') loadMaintenanceMode();
       setupSync();
     } else {
       currentUser = null;
@@ -944,7 +1005,8 @@
   });
 
   function applyRolePermissions() {
-    const isAdmin = currentUserRole === 'admin';
+    const isAdmin = isAdminOrIT();           // admin OR it
+    const isITOnly = currentUserRole === 'it'; // IT-exclusive features
     const isAccountant = currentUserRole === 'accountant';
     const isEngineer = currentUserRole === 'engineer';
 
@@ -953,6 +1015,7 @@
     document.getElementById('nav-clients').style.display = isEngineer ? 'none' : '';
     document.getElementById('nav-suppliers').style.display = isEngineer ? 'none' : '';
     document.getElementById('nav-reports').style.display = isEngineer ? 'none' : '';
+    document.getElementById('nav-quotes').style.display = isEngineer ? 'none' : '';
     // Engineers can see the Projects tab, but renderProjects() restricts it to their own project
 
     // Add/create buttons
@@ -969,14 +1032,18 @@
     if (newClientBtn) newClientBtn.style.display = isAccountant ? 'none' : '';
     if (newSupplierBtn) newSupplierBtn.style.display = isAccountant ? 'none' : '';
 
-    // Backup button (admin only)
+    // Backup button (admin/IT only)
     const backupBtn = document.getElementById('btn-backup');
     if (backupBtn) backupBtn.style.display = isAdmin ? '' : 'none';
 
-    // Settings tab (admin only)
+    // Settings tab (admin/IT only)
     const settingsNav = document.getElementById('nav-settings');
     if (settingsNav) settingsNav.style.display = isAdmin ? '' : 'none';
     if (isAdmin) loadCompanySettings();
+
+    // IT-only force-update section (hidden from regular admin)
+    const itSection = document.getElementById('it-update-section');
+    if (itSection) itSection.style.display = isITOnly ? '' : 'none';
 
     // Land engineer on invoices tab since dashboard is hidden
     if (isEngineer) {
@@ -1021,7 +1088,7 @@
     if (e.key === 'Enter' && !document.getElementById('login-screen').classList.contains('hidden')) doLogin();
   });
 
-  let state = { invoices: [], expenses: [], projects: [], clients: [], suppliers: [] };
+  let state = { invoices: [], expenses: [], projects: [], clients: [], suppliers: [], quotes: [] };
   let deferredPrompt = null;
 
   window.addEventListener('beforeinstallprompt', e => {
@@ -1045,6 +1112,76 @@
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   function today() { return new Date().toISOString().split('T')[0]; }
 
+  function runGlobalSearch(q) {
+    const box = document.getElementById('global-search-results');
+    if (!q || q.trim().length < 2) { box.style.display = 'none'; return; }
+    const t = q.trim();
+    const results = [];
+
+    state.invoices.forEach(i => {
+      if (smartMatch([i.num, i.client, i.project, fmt(i.amount)].join(' '), t)) {
+        const st = invoiceStatus(i);
+        results.push({ label: `فاتورة ${i.num} — ${i.client}`, sub: `${fmt(i.amount)} · ${st.label}`, action: () => openInvoiceDetail(i.id), icon: '🧾' });
+      }
+    });
+    state.projects.forEach(p => {
+      if (smartMatch([p.name, p.client].join(' '), t)) {
+        results.push({ label: p.name, sub: `مشروع · ${p.client||'بدون عميل'} · ${p.status}`, action: () => openProjectDetail(p.id), icon: '🏗️' });
+      }
+    });
+    state.clients.forEach((c, idx) => {
+      if (smartMatch([c.name, c.phone].join(' '), t)) {
+        results.push({ label: c.name, sub: `عميل · ${c.phone||'بدون رقم'}`, action: () => openClientModal(idx), icon: '👤' });
+      }
+    });
+    state.suppliers.forEach((s, idx) => {
+      if (smartMatch([s.name, s.phone, s.category].join(' '), t)) {
+        results.push({ label: s.name, sub: `مورد · ${s.category||''}`, action: () => openSupplierModal(idx), icon: '🚚' });
+      }
+    });
+    state.expenses.forEach(e => {
+      if (smartMatch([e.desc, e.project, e.supplier].join(' '), t)) {
+        results.push({ label: e.desc, sub: `مصروف · ${fmt(e.amount)} · ${fmtDate(e.date)}`, action: () => {}, icon: '💸' });
+      }
+    });
+    state.quotes.forEach(qt => {
+      if (smartMatch([qt.num, qt.client].join(' '), t)) {
+        results.push({ label: `${qt.num} — ${qt.client}`, sub: `عرض سعر · ${fmt(qt.total)}`, action: () => showTab('quotes', document.getElementById('nav-quotes')), icon: '💬' });
+      }
+    });
+
+    if (!results.length) {
+      box.innerHTML = `<div style="padding:14px;font-size:13px;color:var(--text3);text-align:center;">لا توجد نتائج لـ "${t}"</div>`;
+    } else {
+      box.innerHTML = results.slice(0, 12).map((r, i) =>
+        `<div onclick="globalSearchSelect(${i})" style="padding:10px 14px;cursor:pointer;display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--border);" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
+          <span style="font-size:18px;flex-shrink:0">${r.icon}</span>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text)">${r.label}</div><div style="font-size:11px;color:var(--text3)">${r.sub}</div></div>
+        </div>`
+      ).join('');
+    }
+    box.style.display = '';
+    // Store actions so globalSearchSelect can access them
+    box._searchActions = results.slice(0, 12).map(r => r.action);
+  }
+
+  function globalSearchSelect(idx) {
+    const box = document.getElementById('global-search-results');
+    const action = box._searchActions?.[idx];
+    document.getElementById('global-search').value = '';
+    box.style.display = 'none';
+    if (action) action();
+  }
+
+  // Close global search when clicking outside
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#global-search') && !e.target.closest('#global-search-results')) {
+      const box = document.getElementById('global-search-results');
+      if (box) box.style.display = 'none';
+    }
+  });
+
+
   // Records an entry in the company-wide activity log (separate Firestore collection,
   // so it can be queried/paginated cheaply without ever reading the main data document).
   // Fire-and-forget: never blocks or fails the action it's logging.
@@ -1054,6 +1191,103 @@
       by: currentUserName,
       at: new Date().toISOString()
     }).catch(e => console.error('Activity log error:', e));
+  }
+
+  // ===== IT-only tools =====
+
+  async function forceAppUpdate() {
+    const log = document.getElementById('it-update-log');
+    log.textContent = 'جارٍ التحقق من تحديثات Service Worker…';
+    if ('serviceWorker' in navigator) {
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of regs) await reg.update();
+        log.textContent = '✅ تم إرسال طلب التحديث. سيُطبَّق التحديث تلقائيًا في الزيارة القادمة.';
+      } catch(e) {
+        log.textContent = '⚠️ تعذّر التحديث: ' + e.message;
+      }
+    } else {
+      log.textContent = '⚠️ Service Worker غير مدعوم في هذا المتصفح.';
+    }
+  }
+
+  async function clearAppCache() {
+    const log = document.getElementById('it-update-log');
+    if (!confirm('سيتم مسح الكاش المحلي وإعادة تحميل التطبيق من الصفر. هل تريد المتابعة؟')) return;
+    log.textContent = 'جارٍ مسح الكاش…';
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+      log.textContent = '✅ تم مسح الكاش. جارٍ إعادة التحميل…';
+      setTimeout(() => location.reload(true), 1200);
+    } catch(e) {
+      log.textContent = '⚠️ خطأ: ' + e.message;
+    }
+  }
+
+  // ===== Maintenance mode =====
+  // Stored as a flag in company/settings in Firestore so it takes effect for all users instantly.
+
+  let maintenanceMode = false;
+
+  async function loadMaintenanceMode() {
+    try {
+      const doc = await SETTINGS_DOC.get();
+      maintenanceMode = !!(doc.exists && doc.data().maintenanceMode);
+    } catch(e) { maintenanceMode = false; }
+    updateMaintenanceUI();
+
+    // Maintenance mode is an IT-exclusive override: everyone else, including the regular admin, sees the maintenance screen.
+    if (maintenanceMode && currentUserRole !== 'it') {
+      showMaintenanceScreen();
+    }
+  }
+
+  function updateMaintenanceUI() {
+    const btn = document.getElementById('maintenance-toggle-btn');
+    const label = document.getElementById('maintenance-status-label');
+    if (!btn) return;
+    if (maintenanceMode) {
+      btn.textContent = 'إيقاف وضع الصيانة';
+      btn.style.background = 'var(--red-bg)';
+      btn.style.color = 'var(--red)';
+      btn.style.border = '1px solid rgba(232,85,85,0.4)';
+      if (label) label.textContent = '⚠️ التطبيق حاليًا في وضع الصيانة — المستخدمون الآخرون يرون شاشة الصيانة.';
+    } else {
+      btn.textContent = 'تفعيل وضع الصيانة';
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.border = '';
+      if (label) label.textContent = 'التطبيق يعمل بشكل طبيعي.';
+    }
+  }
+
+  async function toggleMaintenanceMode() {
+    maintenanceMode = !maintenanceMode;
+    try {
+      await SETTINGS_DOC.set({ maintenanceMode }, { merge: true });
+      updateMaintenanceUI();
+      logActivity('backup', maintenanceMode ? 'create' : 'delete', `${maintenanceMode ? 'تفعيل' : 'إيقاف'} وضع الصيانة`);
+    } catch(e) {
+      maintenanceMode = !maintenanceMode; // rollback
+      alert('تعذّر تغيير وضع الصيانة. حاول مرة أخرى.');
+    }
+  }
+
+  function showMaintenanceScreen() {
+    document.getElementById('app').style.display = 'none';
+    const screen = document.createElement('div');
+    screen.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px;background:var(--bg);';
+    screen.innerHTML = `
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.5" style="margin-bottom:20px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:10px;">التطبيق تحت الصيانة مؤقتًا</div>
+      <div style="font-size:14px;color:var(--text2);max-width:320px;line-height:1.8;">يجري فريق IT إجراء تحديثات. سيعود التطبيق للعمل قريبًا — يمكنك إعادة المحاولة بعد قليل.</div>
+    `;
+    document.body.appendChild(screen);
   }
 
   // ===== Theme (light/dark) =====
@@ -1068,6 +1302,7 @@
     localStorage.setItem('artash_theme', next);
     applyTheme(next);
     if (typeof renderBudgetChart === 'function' && document.getElementById('budget-chart')) renderBudgetChart();
+    if (typeof renderTrendChart === 'function' && document.getElementById('trend-chart')) renderTrendChart();
   }
   (function initTheme() {
     const saved = localStorage.getItem('artash_theme') || 'dark';
@@ -1169,6 +1404,7 @@
       setFormReadonly('invoice', false);
       document.getElementById('inv-issue').value = today();
       document.getElementById('inv-err').innerHTML = '';
+      autoFillInvoiceNum();
       const defaultProject = currentUserRole === 'engineer' && currentUserProjects.length === 1 ? currentUserProjects[0] : '';
       populateProjectSelect('inv-project', defaultProject);
       document.getElementById('inv-project').disabled = (currentUserRole === 'engineer' && currentUserProjects.length === 1);
@@ -1357,7 +1593,7 @@
     // - engineer assigned to this project: can edit everything except the project name
     // - everyone else (accountant, or engineer on another project): view-only
     const isOwnProjectEngineer = currentUserRole === 'engineer' && currentUserProjects.includes(p.name);
-    const readonly = !(currentUserRole === 'admin' || isOwnProjectEngineer);
+    const readonly = !(isAdminOrIT() || isOwnProjectEngineer);
     setFormReadonly('project', readonly);
     if (isOwnProjectEngineer) document.getElementById('prj-name').readOnly = true; // prevent renaming (breaks project linkage)
     document.getElementById('prj-save-btn').style.display = readonly ? 'none' : '';
@@ -1457,16 +1693,16 @@
           expenses: data.expenses || [],
           projects: data.projects || [],
           clients: data.clients || [],
-          suppliers: data.suppliers || []
+          suppliers: data.suppliers || [],
+          quotes: data.quotes || []
         };
       } else {
-        state = { invoices: [], expenses: [], projects: [], clients: [], suppliers: [] };
-        // initialize the document
+        state = { invoices: [], expenses: [], projects: [], clients: [], suppliers: [], quotes: [] };
         COMPANY_DOC.set(state).catch(() => {});
       }
       renderAll();
       setSyncing(false);
-      if (currentUserRole === 'admin' && !autoBackupChecked) {
+      if (isAdminOrIT() && !autoBackupChecked) {
         autoBackupChecked = true;
         checkAndCreateAutoBackup();
       }
@@ -1640,6 +1876,7 @@
     `).join('');
 
     renderBudgetChart();
+    renderTrendChart();
 
     const combined = [
       ...state.invoices.map(i => ({ date: i.issue || i.due, text: `فاتورة ${i.num} — ${i.client}`, amt: i.amount, type: 'income' })),
@@ -1711,6 +1948,60 @@
     });
   }
 
+  let trendChartInstance = null;
+  function renderTrendChart() {
+    const canvas = document.getElementById('trend-chart');
+    if (!canvas) return;
+    const isLight = document.body.classList.contains('light-mode');
+    const textColor = isLight ? '#5a5a7a' : '#9aa0c3';
+    const gridColor = isLight ? 'rgba(20,20,40,0.08)' : 'rgba(255,255,255,0.06)';
+
+    // Build last 6 months labels + group data
+    const months = [];
+    const invByMonth = {};
+    const expByMonth = {};
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(1);
+      d.setMonth(d.getMonth() - i);
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      const label = d.toLocaleDateString('ar-EG', { month: 'short', year: '2-digit' });
+      months.push({ key, label });
+      invByMonth[key] = 0;
+      expByMonth[key] = 0;
+    }
+    state.invoices.forEach(inv => {
+      const d = inv.issue || inv.createdAt?.split('T')[0];
+      if (!d) return;
+      const key = d.substring(0,7);
+      if (invByMonth[key] !== undefined) invByMonth[key] += Number(inv.amount);
+    });
+    state.expenses.forEach(e => {
+      const key = (e.date||'').substring(0,7);
+      if (expByMonth[key] !== undefined) expByMonth[key] += Number(e.amount);
+    });
+
+    if (trendChartInstance) trendChartInstance.destroy();
+    trendChartInstance = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: months.map(m => m.label),
+        datasets: [
+          { label: 'الإيرادات', data: months.map(m => invByMonth[m.key]), borderColor: '#5b8dee', backgroundColor: 'rgba(91,141,238,0.1)', tension: 0.4, fill: true },
+          { label: 'المصروفات', data: months.map(m => expByMonth[m.key]), borderColor: '#e85555', backgroundColor: 'rgba(232,85,85,0.1)', tension: 0.4, fill: true }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: textColor, font: { family: 'Cairo' } } } },
+        scales: {
+          x: { ticks: { color: textColor, font: { family: 'Cairo' } }, grid: { color: gridColor } },
+          y: { ticks: { color: textColor, font: { family: 'Cairo' } }, grid: { color: gridColor } }
+        }
+      }
+    });
+  }
+
   function getFilteredInvoices() {
     const q = (document.getElementById('inv-search')?.value || '').trim();
     const statusFilter = document.getElementById('inv-status-filter')?.value || '';
@@ -1750,6 +2041,7 @@
         <td><span class="badge badge-${st.key}">${st.label}</span></td>
         <td style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end" onclick="event.stopPropagation()">
           <button class="btn btn-sm btn-pdf" onclick="exportSingleInvoicePDF('${i.id}')">PDF</button>
+          <button class="btn btn-sm" style="background:var(--green-bg);color:var(--green);" onclick="shareInvoiceWhatsApp('${i.id}','invoice')">واتساب</button>
           ${canEdit && remaining > 0 ? `<button class="btn btn-sm btn-success" onclick="markPaid('${i.id}')">✓ سداد كامل</button>` : ''}
           ${canEdit ? `<button class="btn btn-sm btn-danger" onclick="deleteItem('invoices','${i.id}')">حذف</button>` : ''}
         </td>
@@ -1805,7 +2097,7 @@
       return;
     }
     const stMap = { 'نشط': 'badge-active', 'مكتمل': 'badge-completed', 'متوقف': 'badge-hold' };
-    const canEditProjects = currentUserRole === 'admin';
+    const canEditProjects = isAdminOrIT();
     el.innerHTML = list.map(p => {
       const pinv = state.invoices.filter(i => i.project === p.name).reduce((s, i) => s + Number(i.amount), 0);
       const pexp = state.expenses.filter(e => e.project === p.name).reduce((s, e) => s + Number(e.amount), 0);
@@ -1837,7 +2129,7 @@
     }).join('');
   }
 
-  function renderAll() { renderDashboard(); renderInvoices(); renderExpenses(); renderProjects(); renderClients(); renderSuppliers(); populateClientsDatalist(); populateSuppliersDatalist(); }
+  function renderAll() { renderDashboard(); renderInvoices(); renderExpenses(); renderProjects(); renderClients(); renderSuppliers(); renderQuotes(); populateClientsDatalist(); populateSuppliersDatalist(); }
 
   // ===== Clients directory =====
 
@@ -2239,10 +2531,89 @@
     html += `<div style="margin-top:20px;font-size:11px;color:#999;">هذا عرض سعر مبدئي وغير ملزم، وقد يخضع للتعديل حسب الاتفاق النهائي.</div>`;
     html += pdfWrapEnd();
 
+    // Save to quote history before generating the PDF
+    const quoteNum = state.quotes.length + 1;
+    state.quotes.push({
+      id: uid(),
+      num: `QUO-${String(quoteNum).padStart(3,'0')}`,
+      client: client || '—',
+      total,
+      rows,
+      date: today(),
+      createdBy: currentUserName,
+      createdAt: new Date().toISOString()
+    });
+    persist();
+    renderQuotes();
+
     await renderHtmlToPdf(html, `quote-${client || 'عرض-سعر'}-${today()}.pdf`);
   }
 
-  // ===== Tax / accounting report =====
+  function renderQuotes() {
+    const el = document.getElementById('quotes-list');
+    if (!el) return;
+    const q = (document.getElementById('quotes-search')?.value || '').trim();
+    let list = state.quotes.slice().reverse();
+    if (q) list = list.filter(qt => smartMatch([qt.client, qt.num, ...( qt.rows||[]).map(r=>r.desc)].join(' '), q));
+    if (!list.length) {
+      el.innerHTML = `<div class="empty-state">${q ? 'لا توجد نتائج.' : 'لا توجد عروض أسعار بعد. اضغط "عرض سعر جديد" للبدء.'}</div>`;
+      return;
+    }
+    const canEdit = currentUserRole !== 'accountant';
+    el.innerHTML = list.map(qt => {
+      const idx = state.quotes.findIndex(x => x.id === qt.id);
+      return `<div class="project-item">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
+          <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
+            <button class="btn btn-sm btn-pdf" onclick="reExportQuotePDF('${qt.id}')">PDF</button>
+            <button class="btn btn-sm" onclick="shareInvoiceWhatsApp('${qt.id}','quote')">واتساب</button>
+            ${canEdit ? `<button class="btn btn-sm btn-danger" onclick="deleteQuote(${idx})">حذف</button>` : ''}
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:700;font-size:14px;">${qt.num} — ${qt.client}</div>
+            <div style="font-size:12px;color:var(--text3)">${fmtDate(qt.date)} · ${qt.createdBy}</div>
+          </div>
+        </div>
+        <div class="project-stats">
+          <div style="text-align:right"><div class="pstat-label">عدد البنود</div><div class="pstat-val">${(qt.rows||[]).length}</div></div>
+          <div style="text-align:right"><div class="pstat-label">الإجمالي</div><div class="pstat-val" style="color:var(--accent)">${fmt(qt.total)}</div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function reExportQuotePDF(id) {
+    const qt = state.quotes.find(q => q.id === id);
+    if (!qt) return;
+    const rows = qt.rows || [];
+    const total = qt.total || 0;
+    let html = pdfWrapStart('عرض سعر');
+    html += `<div style="font-size:22px;font-weight:700;margin-bottom:6px;">عرض سعر</div>`;
+    html += `<div style="font-size:13px;color:#888;margin-bottom:16px;">${fmtDate(qt.date)}</div>`;
+    html += rowHtml('العميل', qt.client);
+    html += rowHtml('رقم العرض', qt.num);
+    html += `<table style="width:100%;border-collapse:collapse;margin-top:14px;font-size:13px;">
+      <thead><tr style="background:#f7f7f9;">
+        <th style="padding:8px;text-align:right;">الوصف</th>
+        <th style="padding:8px;text-align:right;">الكمية</th>
+        <th style="padding:8px;text-align:right;">السعر</th>
+        <th style="padding:8px;text-align:right;">الإجمالي</th>
+      </tr></thead><tbody>`;
+    rows.forEach(r => {
+      html += `<tr><td style="padding:8px;border-bottom:1px solid #eee;">${r.desc||'—'}</td><td style="padding:8px;border-bottom:1px solid #eee;">${r.qty}</td><td style="padding:8px;border-bottom:1px solid #eee;">${fmt(r.price)}</td><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700;">${fmt(r.total)}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    html += `<div style="display:flex;justify-content:space-between;margin-top:16px;border-top:2px solid #1a1a2e;padding-top:10px;"><span style="font-size:16px;font-weight:700;">الإجمالي</span><span style="font-size:18px;font-weight:700;">${fmt(total)}</span></div>`;
+    html += `<div style="margin-top:20px;font-size:11px;color:#999;">هذا عرض سعر مبدئي وغير ملزم.</div>`;
+    html += pdfWrapEnd();
+    await renderHtmlToPdf(html, `quote-${qt.client}-${qt.date}.pdf`);
+  }
+
+  function deleteQuote(idx) {
+    if (!confirm('حذف عرض السعر هذا؟')) return;
+    state.quotes.splice(idx, 1);
+    persist(); renderQuotes();
+  }
 
   function setReportRangeThisMonth() {
     const now = new Date();
@@ -2365,6 +2736,53 @@
         <div style="font-weight:700;color:#555;">${label}</div>
         <div style="font-weight:600;">${value}${extra}</div>
       </div>`;
+  }
+
+  // Uses the Web Share API (supported in Chrome/Safari mobile) to share a file natively.
+  // Falls back to opening WhatsApp with a text summary if file sharing isn't supported.
+  async function shareFile(blob, filename, text) {
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: blob.type })] })) {
+      try {
+        await navigator.share({ files: [new File([blob], filename, { type: blob.type })], title: filename, text });
+        return;
+      } catch(e) {
+        if (e.name === 'AbortError') return; // user cancelled — that's fine
+        console.error('Share error:', e);
+      }
+    }
+    // Fallback: open WhatsApp with a text summary (PDF not included)
+    const msg = encodeURIComponent(text);
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  }
+
+  async function shareInvoiceWhatsApp(id, type) {
+    if (type === 'quote') {
+      const qt = state.quotes.find(q => q.id === id);
+      if (!qt) return;
+      const text = `عرض سعر ${qt.num}\nالعميل: ${qt.client}\nالإجمالي: ${fmt(qt.total)}\nالتاريخ: ${fmtDate(qt.date)}`;
+      const container = document.createElement('div');
+      container.style.cssText = 'position:fixed;top:-9999px;left:-9999px';
+      document.body.appendChild(container);
+      container.innerHTML = await reExportQuotePDF(id) || '';
+      document.body.removeChild(container);
+      alert('تم تحضير العرض — افتح ملف الـ PDF المُنزَّل وشاركه يدويًا على واتساب.');
+      return;
+    }
+    const inv = state.invoices.find(i => i.id === id);
+    if (!inv) return;
+    const st = invoiceStatus(inv);
+    const remaining = invoiceRemaining(inv);
+    const lines = [
+      `فاتورة رقم: ${inv.num}`,
+      `العميل: ${inv.client}`,
+      inv.project ? `المشروع: ${inv.project}` : '',
+      `المبلغ: ${fmt(Number(inv.amount))}`,
+      remaining > 0 && remaining < Number(inv.amount) ? `المتبقي: ${fmt(remaining)}` : '',
+      `الحالة: ${st.label}`,
+      `تاريخ الاستحقاق: ${fmtDate(inv.due)}`,
+    ].filter(Boolean).join('\n');
+    const msg = encodeURIComponent(lines);
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
   }
 
   async function exportSingleInvoicePDF(id) {
@@ -2882,7 +3300,7 @@
     }
 
     const data = pendingRestoreData;
-    state = { invoices: data.invoices || [], expenses: data.expenses || [], projects: data.projects || [], clients: data.clients || [], suppliers: data.suppliers || [] };
+    state = { invoices: data.invoices || [], expenses: data.expenses || [], projects: data.projects || [], clients: data.clients || [], suppliers: data.suppliers || [], quotes: data.quotes || [] };
     await persist();
     logActivity('backup', 'restore', `⚠️ استرجاع نسخة احتياطية بتاريخ ${fmtDate(data.createdAt ? data.createdAt.split('T')[0] : today())} — استُبدلت جميع بيانات الشركة`);
     renderAll();
@@ -2898,10 +3316,13 @@
     try {
       const doc = await SETTINGS_DOC.get();
       companyLogo = doc.exists ? (doc.data().logoBase64 || '') : '';
+      maintenanceMode = !!(doc.exists && doc.data().maintenanceMode);
     } catch(e) {
       companyLogo = '';
+      maintenanceMode = false;
     }
     updateLogoPreview();
+    updateMaintenanceUI();
   }
 
   function updateLogoPreview() {
@@ -3196,6 +3617,25 @@
     }
   }
 
+  // Generates the next invoice number by finding the highest existing numeric suffix
+  // and incrementing it. Handles formats like INV-001, FAT-23, 2024-005, or plain numbers.
+  function autoFillInvoiceNum() {
+    const nums = state.invoices.map(i => i.num || '');
+    let prefix = 'INV-';
+    let maxNum = 0;
+    nums.forEach(n => {
+      const m = n.match(/^([A-Za-z\u0600-\u06FF\-\/]*)(\d+)$/);
+      if (m) {
+        const candidate = parseInt(m[2], 10);
+        if (candidate > maxNum) { maxNum = candidate; prefix = m[1]; }
+      }
+    });
+    const nextNum = maxNum + 1;
+    const padded = String(nextNum).padStart(3, '0');
+    document.getElementById('inv-num').value = prefix + padded;
+    document.getElementById('inv-err').innerHTML = '';
+  }
+
   function saveInvoice() {
     const client = document.getElementById('inv-client').value.trim();
     const num = document.getElementById('inv-num').value.trim();
@@ -3211,8 +3651,8 @@
 
     const duplicate = state.invoices.find(i => i.num === num && i.id !== editId);
     if (duplicate) {
-      const ok = confirm(`تنبيه: رقم الفاتورة "${num}" مستخدم من قبل في فاتورة للعميل "${duplicate.client}".\n\nهل تريد المتابعة والحفظ رغم ذلك؟`);
-      if (!ok) return;
+      document.getElementById('inv-err').innerHTML = `<div class="error-msg">رقم الفاتورة "${num}" مستخدم من قبل للعميل "${duplicate.client}". يرجى استخدام رقم مختلف — اضغط "ترقيم تلقائي" للحصول على رقم جديد تلقائيًا.</div>`;
+      return;
     }
 
     if (editId) {

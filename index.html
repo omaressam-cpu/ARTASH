@@ -409,6 +409,7 @@
             <button class="btn btn-sm btn-accent" id="prj-add-invoice-btn" onclick="quickAddForProject('invoice')">+ فاتورة لهذا المشروع</button>
             <button class="btn btn-sm btn-accent" id="prj-add-expense-btn" onclick="quickAddForProject('expense')">+ مصروف لهذا المشروع</button>
             <button class="btn btn-sm btn-pdf" id="prj-handover-btn" onclick="exportProjectHandoverPDF(document.getElementById('prj-edit-id').value)">إيصال تسليم</button>
+            <button class="btn btn-sm btn-pdf" onclick="exportProjectReportPDF()">تقرير المشروع PDF</button>
           </div>
 
           <div class="prj-two-col" style="margin-bottom:18px;" id="prj-two-col-lists">
@@ -979,6 +980,7 @@
 
     <div class="modal-actions">
       <button class="btn btn-accent" id="partner-save-btn" onclick="savePartner()">حفظ</button>
+      <button class="btn btn-pdf" id="partner-report-btn" onclick="exportPartnerReportPDF()" style="display:none">تصدير تقرير PDF</button>
       <button class="btn btn-danger" id="partner-delete-btn" onclick="deletePartner()" style="display:none">حذف الشريك</button>
       <button class="btn" onclick="closeModal('partner')">إغلاق</button>
     </div>
@@ -1152,8 +1154,10 @@
       if (currentUserRole !== 'it') loadMaintenanceMode();
       setupSync();
       recordLoginAndCheckDevice(user.uid);
+      resetInactivityTimer();
     } else {
       currentUser = null;
+      clearTimeout(inactivityTimer);
       if (unsubscribeSync) { unsubscribeSync(); unsubscribeSync = null; }
       autoBackupChecked = false;
       document.getElementById('login-screen').classList.remove('hidden');
@@ -1289,6 +1293,28 @@
   function doLogout() {
     if (confirm('هل تريد تسجيل الخروج؟')) auth.signOut();
   }
+
+  // ===== Auto-logout after inactivity =====
+  // Signs the user out automatically after a period with no interaction, so a phone
+  // or laptop left unlocked and logged in doesn't stay exposed indefinitely. Resets
+  // on any click/keypress/touch/scroll. Only active once a user is signed in.
+  const INACTIVITY_LOGOUT_MINUTES = 20;
+  let inactivityTimer = null;
+
+  function resetInactivityTimer() {
+    if (!currentUser) return;
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => {
+      if (currentUser) {
+        auth.signOut();
+        alert('تم تسجيل الخروج تلقائيًا بسبب عدم النشاط لفترة طويلة، لحماية حسابك.');
+      }
+    }, INACTIVITY_LOGOUT_MINUTES * 60 * 1000);
+  }
+
+  ['click', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+    document.addEventListener(evt, resetInactivityTimer, { passive: true });
+  });
 
   // ===== Login tracking & unusual-device detection =====
   // Stores a simple device fingerprint (not full device fingerprinting — just enough
@@ -2091,12 +2117,11 @@
   // "دفعنا" = expenses paid that month (by expense date)
   // "اخدنا" = invoice payments actually received that month (by payment date, مدين only)
   // "علينا المدفوع" = any دائن invoice payments paid out that month (money going OUT to settle a liability)
-  function renderProjectMonthlyBreakdown(p) {
-    const el = document.getElementById('prj-monthly-breakdown');
-    if (!el) return;
+  // Computes the cash-basis monthly breakdown for a project (shared by the on-screen
+  // table and the PDF report, so both always show identical numbers).
+  function computeProjectMonthlyBreakdown(p) {
     const invoices = state.invoices.filter(i => i.project === p.name);
     const expenses = state.expenses.filter(e => e.project === p.name);
-
     const months = {}; // key: 'YYYY-MM' -> { collected, alaynaPaid, expenses }
     const ensure = key => { if (!months[key]) months[key] = { collected: 0, alaynaPaid: 0, expenses: 0 }; return months[key]; };
 
@@ -2113,7 +2138,13 @@
       const key = e.date.substring(0, 7);
       ensure(key).expenses += Number(e.amount);
     });
+    return months;
+  }
 
+  function renderProjectMonthlyBreakdown(p) {
+    const el = document.getElementById('prj-monthly-breakdown');
+    if (!el) return;
+    const months = computeProjectMonthlyBreakdown(p);
     const keys = Object.keys(months).sort();
     if (!keys.length) {
       el.innerHTML = '<div style="font-size:12px;color:var(--text3);">لا توجد حركة مالية مسجّلة بعد لعرضها شهريًا.</div>';
@@ -2136,6 +2167,89 @@
         }).join('')}
       </tbody>
     </table></div>`;
+  }
+
+  // Comprehensive PDF report for a single project: financial summary, invoices,
+  // expenses, partner shares, and the monthly cash-flow breakdown — everything
+  // visible on the project's full-page view, in one shareable document.
+  async function exportProjectReportPDF() {
+    const projectId = document.getElementById('prj-edit-id').value;
+    const p = state.projects.find(x => x.id === projectId);
+    if (!p) { alert('يرجى حفظ المشروع أولاً.'); return; }
+
+    const invoices = state.invoices.filter(i => i.project === p.name);
+    const expenses = state.expenses.filter(e => e.project === p.name);
+    const madinInvoices = invoices.filter(i => !invoiceIsAlayna(i));
+    const alaynaInvoices = invoices.filter(i => invoiceIsAlayna(i));
+    const totalMadin = madinInvoices.reduce((s, i) => s + Number(i.amount), 0);
+    const totalAlayna = alaynaInvoices.reduce((s, i) => s + Number(i.amount), 0);
+    const totalExp = expenses.reduce((s, e) => s + Number(e.amount), 0);
+    const netProfit = (totalMadin - totalAlayna) - totalExp;
+
+    let html = pdfWrapStart('تقرير مشروع');
+    html += `<div style="font-size:22px;font-weight:700;margin-bottom:4px;">${p.name}</div>`;
+    html += `<div style="font-size:13px;color:#888;margin-bottom:16px;">${p.code ? p.code + ' — ' : ''}${p.client || 'بدون عميل'} · ${p.status}</div>`;
+    html += `<div style="height:1px;background:#ddd;margin-bottom:16px;"></div>`;
+
+    html += `<div style="font-weight:700;color:#555;margin-bottom:8px;">الملخص المالي</div>`;
+    html += rowHtml('إجمالي مدين', fmt(totalMadin));
+    if (totalAlayna > 0) html += rowHtml('إجمالي دائن', `<span style="color:#b06ad6">${fmt(totalAlayna)}</span>`);
+    html += rowHtml('إجمالي المصروفات', `<span style="color:#e85555">${fmt(totalExp)}</span>`);
+    html += rowHtml('صافي الربح التقديري', `<strong style="color:${netProfit>=0?'#2ecc8a':'#e85555'}">${fmt(netProfit)}</strong>`);
+    if (p.budget > 0) html += rowHtml('الميزانية', fmt(p.budget));
+    if (p.expectedDelivery) html += rowHtml('التسليم المتوقع', fmtDate(p.expectedDelivery));
+
+    if (invoices.length) {
+      html += `<div style="font-weight:700;color:#555;margin:18px 0 8px;">الفواتير (${invoices.length})</div>`;
+      html += `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">
+        <thead><tr style="background:#f7f7f9;"><th style="padding:6px;text-align:right;">الرقم</th><th style="padding:6px;text-align:right;">النوع</th><th style="padding:6px;text-align:right;">العميل</th><th style="padding:6px;text-align:right;">المبلغ</th><th style="padding:6px;text-align:right;">الحالة</th></tr></thead><tbody>`;
+      invoices.forEach(i => {
+        const st = invoiceStatus(i);
+        html += `<tr><td style="padding:6px;border-bottom:1px solid #eee;">${i.num}</td><td style="padding:6px;border-bottom:1px solid #eee;">${invoiceTypeLabel(i)}</td><td style="padding:6px;border-bottom:1px solid #eee;">${i.client}</td><td style="padding:6px;border-bottom:1px solid #eee;">${fmt(i.amount)}</td><td style="padding:6px;border-bottom:1px solid #eee;">${st.label}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+
+    if (expenses.length) {
+      html += `<div style="font-weight:700;color:#555;margin:18px 0 8px;">المصروفات (${expenses.length})</div>`;
+      html += `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">
+        <thead><tr style="background:#f7f7f9;"><th style="padding:6px;text-align:right;">الوصف</th><th style="padding:6px;text-align:right;">الفئة</th><th style="padding:6px;text-align:right;">التاريخ</th><th style="padding:6px;text-align:right;">المبلغ</th></tr></thead><tbody>`;
+      expenses.forEach(e => {
+        html += `<tr><td style="padding:6px;border-bottom:1px solid #eee;">${e.desc}</td><td style="padding:6px;border-bottom:1px solid #eee;">${e.category}</td><td style="padding:6px;border-bottom:1px solid #eee;">${fmtDate(e.date)}</td><td style="padding:6px;border-bottom:1px solid #eee;">${fmt(e.amount)}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+
+    const shares = p.partnerShares || [];
+    if (shares.length) {
+      html += `<div style="font-weight:700;color:#555;margin:18px 0 8px;">الشركاء ونسبهم</div>`;
+      html += `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">
+        <thead><tr style="background:#f7f7f9;"><th style="padding:6px;text-align:right;">الشريك</th><th style="padding:6px;text-align:right;">النسبة</th><th style="padding:6px;text-align:right;">نصيبه</th></tr></thead><tbody>`;
+      shares.forEach(sh => {
+        const partner = state.partners.find(x => x.id === sh.partnerId);
+        const shareAmount = netProfit * (Number(sh.percentage) / 100);
+        html += `<tr><td style="padding:6px;border-bottom:1px solid #eee;">${partner ? partner.name : 'شريك محذوف'}</td><td style="padding:6px;border-bottom:1px solid #eee;">${sh.percentage}%</td><td style="padding:6px;border-bottom:1px solid #eee;color:#2ecc8a;font-weight:700;">${fmt(shareAmount)}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+
+    const months = computeProjectMonthlyBreakdown(p);
+    const monthKeys = Object.keys(months).sort();
+    if (monthKeys.length) {
+      html += `<div style="font-weight:700;color:#555;margin:18px 0 8px;">التقسيم الشهري</div>`;
+      html += `<table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead><tr style="background:#f7f7f9;"><th style="padding:6px;text-align:right;">الشهر</th><th style="padding:6px;text-align:right;">اخدنا</th><th style="padding:6px;text-align:right;">علينا (مدفوع)</th><th style="padding:6px;text-align:right;">دفعنا</th><th style="padding:6px;text-align:right;">صافي الشهر</th></tr></thead><tbody>`;
+      monthKeys.forEach(key => {
+        const m = months[key];
+        const net = m.collected - m.alaynaPaid - m.expenses;
+        const label = new Date(key + '-01').toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' });
+        html += `<tr><td style="padding:6px;border-bottom:1px solid #eee;font-weight:600;">${label}</td><td style="padding:6px;border-bottom:1px solid #eee;color:#2ecc8a;">${fmt(m.collected)}</td><td style="padding:6px;border-bottom:1px solid #eee;color:#b06ad6;">${m.alaynaPaid>0?fmt(m.alaynaPaid):'—'}</td><td style="padding:6px;border-bottom:1px solid #eee;color:#e85555;">${fmt(m.expenses)}</td><td style="padding:6px;border-bottom:1px solid #eee;font-weight:700;color:${net>=0?'#2ecc8a':'#e85555'};">${fmt(net)}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+
+    html += pdfWrapEnd();
+    await renderHtmlToPdf(html, `project-report-${p.name}.pdf`);
   }
 
   // Opens the invoice/expense creation modal pre-locked to a specific project (used from inside a project's detail view)
@@ -2946,6 +3060,7 @@
       renderPartnerWithdrawalsList(p);
       document.getElementById('partner-withdrawal-date').value = today();
       document.getElementById('partner-delete-btn').style.display = isAdminOrIT() ? '' : 'none';
+      document.getElementById('partner-report-btn').style.display = '';
     } else {
       document.getElementById('partner-modal-title').textContent = 'شريك جديد';
       document.getElementById('partner-edit-id').value = '';
@@ -2955,6 +3070,7 @@
       document.getElementById('partner-summary-section').style.display = 'none';
       document.getElementById('partner-withdrawals-section').style.display = 'none';
       document.getElementById('partner-delete-btn').style.display = 'none';
+      document.getElementById('partner-report-btn').style.display = 'none';
     }
   }
 
@@ -3041,6 +3157,60 @@
     persist();
     openPartnerModal(state.partners.indexOf(p));
     renderAll();
+  }
+
+  // Comprehensive PDF report for a single partner: per-project breakdown, all withdrawals, net balance.
+  async function exportPartnerReportPDF() {
+    const editId = document.getElementById('partner-edit-id').value;
+    const p = state.partners.find(x => x.id === editId);
+    if (!p) return;
+    const t = partnerTotals(p.id);
+
+    let html = pdfWrapStart('تقرير شريك');
+    html += `<div style="font-size:22px;font-weight:700;margin-bottom:4px;">${p.name}</div>`;
+    if (p.phone) html += `<div style="font-size:13px;color:#888;margin-bottom:16px;">${p.phone}</div>`;
+    html += `<div style="height:1px;background:#ddd;margin-bottom:16px;"></div>`;
+
+    html += `<div style="font-weight:700;color:#555;margin-bottom:8px;">نصيبه في المشاريع</div>`;
+    if (!t.breakdown.length) {
+      html += `<div style="font-size:13px;color:#888;">هذا الشريك غير مُشارك في أي مشروع حاليًا.</div>`;
+    } else {
+      html += `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
+        <thead><tr style="background:#f7f7f9;">
+          <th style="padding:8px;text-align:right;">المشروع</th>
+          <th style="padding:8px;text-align:right;">النسبة</th>
+          <th style="padding:8px;text-align:right;">صافي ربح المشروع</th>
+          <th style="padding:8px;text-align:right;">نصيب الشريك</th>
+        </tr></thead><tbody>`;
+      t.breakdown.forEach(b => {
+        html += `<tr>
+          <td style="padding:8px;border-bottom:1px solid #eee;font-weight:600;">${b.project.name}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${b.percentage}%</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${fmt(b.netProfit)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;color:#2ecc8a;font-weight:700;">${fmt(b.partnerShareAmount)}</td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+
+    const withdrawals = p.withdrawals || [];
+    html += `<div style="font-weight:700;color:#555;margin:16px 0 8px;">سجل السحوبات</div>`;
+    if (!withdrawals.length) {
+      html += `<div style="font-size:13px;color:#888;">لا توجد سحوبات مسجّلة.</div>`;
+    } else {
+      withdrawals.slice().reverse().forEach(w => {
+        html += `<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid #f0f0f0;"><span>${fmtDate(w.date)} — ${w.by || ''}</span><span style="font-weight:700;color:#e85555;">${fmt(w.amount)}</span></div>`;
+      });
+    }
+
+    html += `<div style="height:2px;background:#e8b84b;margin:20px 0;"></div>`;
+    html += rowHtml('إجمالي المستحق', `<strong style="color:#2ecc8a">${fmt(t.totalEarned)}</strong>`);
+    html += rowHtml('إجمالي المسحوب', `<strong style="color:#e85555">${fmt(t.totalWithdrawn)}</strong>`);
+    const balanceLabel = t.netBalance >= 0 ? 'الرصيد الصافي (له)' : 'الرصيد الصافي (عليه)';
+    html += rowHtml(balanceLabel, `<strong style="font-size:18px;color:${t.netBalance>=0?'#2ecc8a':'#e85555'}">${fmt(Math.abs(t.netBalance))}</strong>`);
+    html += pdfWrapEnd();
+
+    await renderHtmlToPdf(html, `partner-report-${p.name}.pdf`);
   }
 
   // ===== Partner shares within a single project (shown on the project detail page) =====

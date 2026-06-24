@@ -1,7 +1,8 @@
-const CACHE_NAME = 'artash-v4';
+const CACHE_NAME = 'artash-v5';
 const ASSETS = [
   '/',
-  '/index.html',
+  '/artash23.html',
+  '/artash22.html',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',

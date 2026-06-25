@@ -1,8 +1,7 @@
-const CACHE_NAME = 'artash-v5';
+const CACHE_NAME = 'artash-v6';
 const ASSETS = [
   '/',
-  '/artash23.html',
-  '/artash22.html',
+  '/artash24.html',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -20,8 +19,6 @@ const ASSETS = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache =>
-      // Cache each asset individually so one failed/slow CDN request
-      // (e.g. a flaky font request) doesn't block the whole install.
       Promise.all(ASSETS.map(url => cache.add(url).catch(() => {})))
     )
   );
@@ -37,8 +34,6 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Network-first for navigation/HTML requests so updates show immediately.
-// Falls back to cache only when offline, so the app still opens with no internet.
 self.addEventListener('fetch', event => {
   const isHTML = event.request.mode === 'navigate' || event.request.destination === 'document';
   if (isHTML) {
@@ -47,14 +42,11 @@ self.addEventListener('fetch', event => {
         const clone = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         return response;
-      }).catch(() => caches.match(event.request).then(c => c || caches.match('/index.html')))
+      }).catch(() => caches.match(event.request).then(c => c || caches.match('/artash24.html')))
     );
     return;
   }
 
-  // Cache-first for everything else (libraries, fonts, icons): instant + works offline.
-  // Only falls back to the network if not already cached, and never substitutes the
-  // HTML page for a missing script/style (that would break the app instead of fixing it).
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;

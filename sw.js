@@ -1,10 +1,9 @@
 const CACHE_NAME = 'artash-v6';
 const ASSETS = [
   '/',
-  '/artash24.html',
+  '/index.html',
   '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
+  '/icon-512.png',
   'https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
@@ -42,11 +41,10 @@ self.addEventListener('fetch', event => {
         const clone = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         return response;
-      }).catch(() => caches.match(event.request).then(c => c || caches.match('/artash24.html')))
+      }).catch(() => caches.match(event.request).then(c => c || caches.match('/index.html')))
     );
     return;
   }
-
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;

@@ -1080,8 +1080,14 @@
       if (justAuthenticated) {
         sessionStorage.removeItem('artash_just_authenticated');
       } else if (navigator.onLine) {
-        showReauthGate(user);
-        return;
+        // Only show reauth gate if session is older than 8 hours
+        // This prevents repeated password prompts during the same work day
+        const lastAuth = localStorage.getItem('artash_last_reauth');
+        const eightHours = 8 * 60 * 60 * 1000;
+        if (!lastAuth || (Date.now() - Number(lastAuth)) > eightHours) {
+          showReauthGate(user);
+          return;
+        }
       }
       await completeLoginFlow(user);
     } else {
@@ -1116,6 +1122,7 @@
     document.getElementById('user-display').textContent = `أهلاً، ${currentUserName}`;
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('reauth-gate-screen').classList.add('hidden');
+    localStorage.setItem('artash_last_reauth', Date.now().toString());
     applyRolePermissions();
     if (currentUserRole !== 'it') loadMaintenanceMode();
     setupSync();
@@ -1142,6 +1149,7 @@
     try {
       const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, password);
       await currentUser.reauthenticateWithCredential(credential);
+      localStorage.setItem('artash_last_reauth', Date.now().toString());
       await completeLoginFlow(currentUser);
     } catch(e) {
       errEl.textContent = e.code === 'auth/network-request-failed'
@@ -1216,11 +1224,15 @@
 
   async function checkAccountLockout(email) {
     try {
-      // Check if this is an IT account — IT is never locked out regardless of attempts
-      const usersSnap = await db.collection('users').where('email', '==', email).limit(1).get();
-      if (!usersSnap.empty) {
-        const role = (usersSnap.docs[0].data().role || '').trim().toLowerCase();
-        if (role === 'it') return { blocked: false }; // IT accounts are immune to lockout
+      // Check IT role safely — if this fails (e.g. rules not set), skip and continue
+      try {
+        const usersSnap = await db.collection('users').where('email', '==', email).limit(1).get();
+        if (!usersSnap.empty) {
+          const role = (usersSnap.docs[0].data().role || '').trim().toLowerCase();
+          if (role === 'it') return { blocked: false };
+        }
+      } catch(roleErr) {
+        // Can't check role — fail open (never block login due to a rules issue)
       }
       const doc = await LOGIN_LOCKOUTS_COL.doc(email).get();
       if (!doc.exists) return { blocked: false };
@@ -1234,18 +1246,20 @@
       }
       return { blocked: false };
     } catch(e) {
-      return { blocked: false }; // fail open — never block login just because the check itself failed
+      return { blocked: false }; // fail open always
     }
   }
 
   async function registerFailedLoginForEmail(email) {
     try {
       // IT accounts are never locked out — skip recording failures for them
-      const usersSnap = await db.collection('users').where('email', '==', email).limit(1).get();
-      if (!usersSnap.empty) {
-        const role = (usersSnap.docs[0].data().role || '').trim().toLowerCase();
-        if (role === 'it') return; // IT is immune — never register a lockout
-      }
+      try {
+        const usersSnap = await db.collection('users').where('email', '==', email).limit(1).get();
+        if (!usersSnap.empty) {
+          const role = (usersSnap.docs[0].data().role || '').trim().toLowerCase();
+          if (role === 'it') return;
+        }
+      } catch(roleErr) { /* fail open — don't block lockout tracking */ }
       const ref = LOGIN_LOCKOUTS_COL.doc(email);
       const doc = await ref.get();
       const d = doc.exists ? doc.data() : {};
@@ -1373,7 +1387,10 @@
   }
 
   function doLogout() {
-    if (confirm('هل تريد تسجيل الخروج؟')) auth.signOut();
+    if (confirm('هل تريد تسجيل الخروج؟')) {
+      localStorage.removeItem('artash_last_reauth');
+      auth.signOut();
+    }
   }
 
   // ===== Auto-logout after inactivity =====

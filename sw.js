@@ -1,4 +1,4 @@
-const CACHE_NAME = 'artash-v8';
+const CACHE_NAME = 'artash-v9';
 const ASSETS = [
   '/ARTASH/',
   '/ARTASH/index.html',

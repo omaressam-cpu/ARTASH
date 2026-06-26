@@ -240,3 +240,12 @@
     .btn-pdf { background: var(--blue-bg); border-color: rgba(91,141,238,0.3); color: var(--blue); }
     .btn-pdf:hover { background: var(--blue); border-color: var(--blue); color: #fff; }
   
+/* ===== Toast Notifications (بديل الـ alert) ===== */
+#toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+.toast { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius); padding: 12px 20px; font-size: 13px; font-family: "Cairo", sans-serif; color: var(--text); box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; max-width: 320px; text-align: center; animation: toastIn 0.25s ease; pointer-events: auto; }
+.toast.success { border-color: rgba(46,204,138,0.4); background: var(--green-bg); color: var(--green); }
+.toast.error { border-color: rgba(232,85,85,0.4); background: var(--red-bg); color: var(--red); }
+.toast.warning { border-color: rgba(232,184,75,0.4); background: var(--amber-bg); color: var(--amber); }
+.toast.info { border-color: rgba(91,141,238,0.4); background: var(--blue-bg); color: var(--blue); }
+@keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes toastOut { from { opacity:1; } to { opacity:0; transform:translateY(10px); } }

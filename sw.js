@@ -1,7 +1,8 @@
-const CACHE_NAME = 'artash-v9';
+const CACHE_NAME = 'artash-v10';
 const ASSETS = [
   '/ARTASH/',
   '/ARTASH/index.html',
+  '/ARTASH/artash.css',
   '/ARTASH/manifest.json',
   '/ARTASH/icon-512.png',
   'https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap',

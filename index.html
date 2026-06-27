@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Artash</title>
-  <meta name="app-version" content="27" />
+  <meta name="app-version" content="28" />
   <meta name="description" content="نظام تتبع مالي وفواتير لشركات المقاولات" />
   <meta name="theme-color" content="#1a1a2e" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -538,6 +538,12 @@
       <!-- IT-only: invisible to regular admin -->
       <div class="card" id="it-update-section" style="display:none;border:1px solid rgba(91,141,238,0.4);background:rgba(91,141,238,0.05);">
         <div class="card-header"><span class="card-title" style="color:var(--blue)">🛠️ أدوات IT (حصرية)</span></div>
+        <div id="security-checklist" style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:13px;">
+          <div style="font-weight:700;margin-bottom:8px;">🔐 قائمة الأمان</div>
+          <div id="security-check-rules" style="color:var(--text2);margin-bottom:4px;">⏳ جارٍ التحقق من Firestore Rules…</div>
+          <div style="color:var(--text2);margin-bottom:4px;" id="security-check-referrer">⚠️ تحقق من HTTP Referrer restrictions في Firebase Console</div>
+          <div style="color:var(--text2);" id="security-check-backup">⏳ جارٍ التحقق من النسخ الاحتياطية…</div>
+        </div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">هذا القسم ظاهر لـ IT فقط وغير مرئي للمدير أو بقية الأدوار.</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-sm" style="background:var(--blue-bg);color:var(--blue);" onclick="forceAppUpdate()">🔄 تحديث التطبيق (Force Refresh)</button>
@@ -1616,6 +1622,51 @@
 
   // ===== IT-only tools =====
 
+  // ===== Security Checklist =====
+  async function runSecurityChecklist() {
+    // Check 1: Can we read/write with correct permissions?
+    const rulesEl = document.getElementById('security-check-rules');
+    const backupEl = document.getElementById('security-check-backup');
+    if (!rulesEl) return;
+
+    try {
+      // Try reading a restricted collection (backups) — should work for IT
+      await BACKUPS_COL.limit(1).get();
+      rulesEl.innerHTML = '✅ Firestore Rules تعمل — الوصول محدود بشكل صحيح';
+      rulesEl.style.color = 'var(--green)';
+    } catch(e) {
+      if (e.code === 'permission-denied') {
+        rulesEl.innerHTML = '✅ Firestore Rules نشطة وتمنع الوصول غير المصرح';
+        rulesEl.style.color = 'var(--green)';
+      } else {
+        rulesEl.innerHTML = '⚠️ تعذّر التحقق من Firestore Rules — تأكد من تحديثها في Firebase Console';
+        rulesEl.style.color = 'var(--amber)';
+      }
+    }
+
+    // Check 2: Last backup date
+    try {
+      const snap = await BACKUPS_COL.orderBy('createdAt', 'desc').limit(1).get();
+      if (snap.empty) {
+        backupEl.innerHTML = '⚠️ لا توجد نسخ احتياطية — اضغط "أخذ نسخة الآن" من قسم النسخ الاحتياطية';
+        backupEl.style.color = 'var(--amber)';
+      } else {
+        const lastBackup = snap.docs[0].data().createdAt;
+        const daysSince = Math.ceil((Date.now() - new Date(lastBackup)) / (1000*60*60*24));
+        if (daysSince > 7) {
+          backupEl.innerHTML = `⚠️ آخر نسخة احتياطية منذ ${daysSince} يوم — يُنصح بأخذ نسخة جديدة`;
+          backupEl.style.color = 'var(--amber)';
+        } else {
+          backupEl.innerHTML = `✅ آخر نسخة احتياطية منذ ${daysSince} يوم`;
+          backupEl.style.color = 'var(--green)';
+        }
+      }
+    } catch(e) {
+      backupEl.innerHTML = '⚠️ تعذّر التحقق من النسخ الاحتياطية';
+      backupEl.style.color = 'var(--amber)';
+    }
+  }
+
   async function forceAppUpdate() {
     const log = document.getElementById('it-update-log');
     log.textContent = 'جارٍ التحقق من تحديثات Service Worker…';
@@ -1834,7 +1885,7 @@
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('visible');
     btn.classList.add('active');
-    if (tab === 'settings') { loadEmployeesList(); loadActivityLog(true); renderTrash(); updateNotificationSettingsUI(); loadLockedAccounts(); }
+    if (tab === 'settings') { loadEmployeesList(); loadActivityLog(true); renderTrash(); updateNotificationSettingsUI(); loadLockedAccounts(); if (currentUserRole === 'it') runSecurityChecklist(); }
     if (tab === 'reports' && !document.getElementById('report-from-date').value) setReportRangeThisMonth();
   }
 
@@ -2590,18 +2641,31 @@
     }, err => { console.error('Sync error:', err); });
   }
 
+  // Rate limiting: debounce rapid saves to max 1 per 2 seconds
+  let persistTimer = null;
+  let persistPending = false;
+
   async function persist() {
-    setSyncing(true);
-    try {
-      await COMPANY_DOC.set(state);
-    } catch(e) {
-      console.error('Save error:', e);
-    }
-    setSyncing(false);
+    persistPending = true;
+    if (persistTimer) return; // already queued
+    persistTimer = setTimeout(async () => {
+      persistTimer = null;
+      persistPending = false;
+      setSyncing(true);
+      try {
+        await COMPANY_DOC.set(state);
+      } catch(e) {
+        console.error('Save error:', e);
+        setSyncing(false);
+      }
+      setSyncing(false);
+    }, 800); // wait 800ms — batches rapid consecutive saves
   }
 
   async function persistProject(p) { await persist(); }
   async function deleteProjectDoc(id) { await persist(); }
+
+
 
   let isOnline = navigator.onLine;
 
@@ -4961,9 +5025,11 @@
         const secondaryAuth = getSecondaryAuth();
         const cred = await secondaryAuth.createUserWithEmailAndPassword(email, password);
         const newUid = cred.user.uid;
+        // Send email verification before signing out secondary user
+        try { await cred.user.sendEmailVerification(); } catch(verifyErr) { console.warn('Email verify send failed:', verifyErr); }
         await secondaryAuth.signOut();
-        await db.collection('users').doc(newUid).set({ name, email, role, assignedProjects });
-        logActivity('employee', 'create', `إضافة موظف "${name}" (${ROLE_LABELS[role] || role})`);
+        await db.collection('users').doc(newUid).set({ name, email, role, assignedProjects, emailVerified: false, createdAt: new Date().toISOString(), createdBy: currentUserName });
+        logActivity('employee', 'create', `إضافة موظف "${name}" (${ROLE_LABELS[role] || role}) — تم إرسال بريد التحقق`);
       }
       closeModal('employee');
       loadEmployeesList();

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Artash</title>
-  <meta name="app-version" content="29" />
+  <meta name="app-version" content="30" />
   <meta name="description" content="نظام تتبع مالي وفواتير لشركات المقاولات" />
   <meta name="theme-color" content="#1a1a2e" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -116,6 +116,14 @@
     <button id="nav-projects" onclick="showTab('projects', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
       المشاريع
+    </button>
+    <button id="nav-clients" onclick="showTab('clients', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      العملاء
+    </button>
+    <button id="nav-suppliers" onclick="showTab('suppliers', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      الموردين
     </button>
 
 
@@ -347,6 +355,38 @@
     </div>
 
 
+
+    <!-- العملاء -->
+    <div id="tab-clients" class="section">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">دليل العملاء</span>
+        </div>
+        <div class="toolbar-row">
+          <div class="search-wrap">
+            <input type="text" class="search-input" id="global-client-search" placeholder="بحث بالاسم أو المشروع…" oninput="renderGlobalClients()" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+        <div id="global-clients-list"></div>
+      </div>
+    </div>
+
+    <!-- الموردين -->
+    <div id="tab-suppliers" class="section">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">دليل الموردين</span>
+        </div>
+        <div class="toolbar-row">
+          <div class="search-wrap">
+            <input type="text" class="search-input" id="global-supplier-search" placeholder="بحث بالاسم أو المشروع…" oninput="renderGlobalSuppliers()" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+        <div id="global-suppliers-list"></div>
+      </div>
+    </div>
 
     <!-- الشركاء (المدير وIT فقط) -->
     <div id="tab-partners" class="section">
@@ -905,6 +945,32 @@
   </div>
 </div>
 
+<!-- نافذة تفاصيل العميل الشامل -->
+<div class="modal-overlay" id="modal-global-client">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-title" id="global-client-modal-title">تفاصيل العميل</div>
+    <div id="global-client-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-pdf" id="global-client-pdf-btn" onclick="exportGlobalClientPDF()">تقرير PDF</button>
+      <button class="btn btn-pdf" onclick="exportGlobalClientExcel()">تقرير Excel</button>
+      <button class="btn" onclick="closeModal('global-client')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة تفاصيل المورد الشامل -->
+<div class="modal-overlay" id="modal-global-supplier">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-title" id="global-supplier-modal-title">تفاصيل المورد</div>
+    <div id="global-supplier-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-pdf" id="global-supplier-pdf-btn" onclick="exportGlobalSupplierPDF()">تقرير PDF</button>
+      <button class="btn btn-pdf" onclick="exportGlobalSupplierExcel()">تقرير Excel</button>
+      <button class="btn" onclick="closeModal('global-supplier')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <!-- نافذة تأكيد حذف المشروع بكلمة المرور -->
 <div class="modal-overlay" id="modal-delete-project">
   <div class="modal" style="max-width:420px;">
@@ -929,7 +995,7 @@
     <input type="hidden" id="prj-client-edit-id" value="" />
     <div id="prj-client-err"></div>
     <div class="form-grid">
-      <div class="form-group full"><label>الاسم *</label><input id="prj-client-name" placeholder="اسم العميل أو الشركة" /></div>
+      <div class="form-group full"><label>الاسم *</label><input id="prj-client-name" placeholder="اسم العميل أو الشركة" list="global-clients-datalist" /><datalist id="global-clients-datalist"></datalist></div>
       <div class="form-group full"><label>إجمالي المبلغ (جنيه)</label><input id="prj-client-total" type="number" placeholder="0" oninput="updatePrjClientRemaining()" /></div>
       <div class="form-group full"><label>ملاحظات</label><textarea id="prj-client-notes" placeholder="ملاحظات اختيارية…"></textarea></div>
     </div>
@@ -964,7 +1030,7 @@
     <input type="hidden" id="prj-supplier-edit-id" value="" />
     <div id="prj-supplier-err"></div>
     <div class="form-grid">
-      <div class="form-group full"><label>الاسم *</label><input id="prj-supplier-name" placeholder="اسم المورد أو الشركة" /></div>
+      <div class="form-group full"><label>الاسم *</label><input id="prj-supplier-name" placeholder="اسم المورد أو الشركة" list="global-suppliers-datalist" /><datalist id="global-suppliers-datalist"></datalist></div>
       <div class="form-group full"><label>النوع</label>
         <select id="prj-supplier-category">
           <option value="مواد">مواد</option>
@@ -1194,6 +1260,8 @@
 
     // Nav tabs
     document.getElementById('nav-dashboard').style.display = isEngineer ? 'none' : '';
+    document.getElementById('nav-clients').style.display = isEngineer ? 'none' : '';
+    document.getElementById('nav-suppliers').style.display = isEngineer ? 'none' : '';
     document.getElementById('nav-partners').style.display = isAdmin ? '' : 'none';
     document.getElementById('nav-reports').style.display = isEngineer ? 'none' : '';
     document.getElementById('nav-quotes').style.display = isEngineer ? 'none' : '';
@@ -1904,6 +1972,8 @@
     btn.classList.add('active');
     if (tab === 'settings') { loadEmployeesList(); loadActivityLog(true); renderTrash(); updateNotificationSettingsUI(); loadLockedAccounts(); if (currentUserRole === 'it') runSecurityChecklist(); }
     if (tab === 'reports' && !document.getElementById('report-from-date').value) setReportRangeThisMonth();
+    if (tab === 'clients') renderGlobalClients();
+    if (tab === 'suppliers') renderGlobalSuppliers();
   }
 
   function clearInvoiceFilters() {
@@ -3152,7 +3222,7 @@
     }).join('');
   }
 
-  function renderAll() { renderDashboard(); renderInvoices(); renderExpenses(); renderProjects(); renderQuotes(); renderPartners(); }
+  function renderAll() { renderDashboard(); renderInvoices(); renderExpenses(); renderProjects(); renderQuotes(); renderPartners(); renderGlobalClients(); renderGlobalSuppliers(); updateGlobalDatalistsForProjects(); }
 
   // ===== Clients directory =====
 
@@ -5745,6 +5815,16 @@
     }
   }
 
+  function updateGlobalDatalistsForProjects() {
+    // Populate datalists for autocomplete in project modals
+    const allClients = getAllClientsFromProjects();
+    const allSuppliers = getAllSuppliersFromProjects();
+    const cdl = document.getElementById('global-clients-datalist');
+    const sdl = document.getElementById('global-suppliers-datalist');
+    if (cdl) cdl.innerHTML = allClients.map(c => `<option value="${c.name}">`).join('');
+    if (sdl) sdl.innerHTML = allSuppliers.map(s => `<option value="${s.name}">`).join('');
+  }
+
   function saveProjectClient() {
     const projectId = document.getElementById('prj-edit-id').value;
     const p = state.projects.find(x => x.id === projectId);
@@ -5876,6 +5956,354 @@
     persistProject(p);
     renderProjectSuppliers(p);
     closeModal('project-supplier');
+  }
+
+  // ===== دليل العملاء والموردين الشامل =====
+  // يجمع كل العملاء من كل المشاريع في قايمة واحدة
+  // ويربط كل عميل بالمشاريع بتاعته
+
+  let currentGlobalClient = null;
+  let currentGlobalSupplier = null;
+
+  // جمع كل العملاء من كل المشاريع
+  function getAllClientsFromProjects() {
+    const clientsMap = {}; // key: name → { name, projects: [{project, client entry}] }
+    state.projects.forEach(p => {
+      (p.projectClients || []).forEach(c => {
+        const key = c.name.trim().toLowerCase();
+        if (!clientsMap[key]) clientsMap[key] = { name: c.name, projects: [] };
+        clientsMap[key].projects.push({ project: p, entry: c });
+      });
+    });
+    return Object.values(clientsMap);
+  }
+
+  // جمع كل الموردين من كل المشاريع
+  function getAllSuppliersFromProjects() {
+    const suppliersMap = {};
+    state.projects.forEach(p => {
+      (p.projectSuppliers || []).forEach(s => {
+        const key = s.name.trim().toLowerCase();
+        if (!suppliersMap[key]) suppliersMap[key] = { name: s.name, projects: [] };
+        suppliersMap[key].projects.push({ project: p, entry: s });
+      });
+    });
+    return Object.values(suppliersMap);
+  }
+
+  function renderGlobalClients() {
+    const el = document.getElementById('global-clients-list');
+    if (!el) return;
+    const q = (document.getElementById('global-client-search')?.value || '').trim();
+    let list = getAllClientsFromProjects();
+    if (q) list = list.filter(c => smartMatch(c.name + ' ' + c.projects.map(p => p.project.name).join(' '), q));
+
+    if (!list.length) {
+      el.innerHTML = `<div class="empty-state">${q ? 'لا توجد نتائج.' : 'لا يوجد عملاء بعد. أضف عملاء من داخل المشاريع.'}</div>`;
+      return;
+    }
+
+    el.innerHTML = list.map(client => {
+      const totalAmt = client.projects.reduce((s, p) => s + Number(p.entry.total||0), 0);
+      const totalPaid = client.projects.reduce((s, p) => s + (p.entry.payments||[]).reduce((s2,pm) => s2+Number(pm.amount),0), 0);
+      const totalRemaining = Math.max(0, totalAmt - totalPaid);
+
+      return `<div class="project-item" style="cursor:pointer" onclick="openGlobalClientModal('${client.name.replace(/'/g,"\'")}')">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
+          <div style="text-align:left">
+            <div style="font-size:12px;color:var(--text3);">${client.projects.length} مشروع</div>
+            ${totalRemaining > 0
+              ? `<div style="font-size:13px;color:var(--red);font-weight:700;">متبقي: ${fmt(totalRemaining)}</div>`
+              : `<div style="font-size:12px;color:var(--green);">✓ مسدد</div>`}
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:15px;font-weight:700;">${client.name}</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;">
+              ${client.projects.map(p => `<span style="background:var(--surface2);padding:2px 8px;border-radius:20px;font-size:11px;">${p.project.name}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="project-stats" style="margin-top:10px;">
+          <div style="text-align:right;"><div class="pstat-label">الإجمالي</div><div class="pstat-val">${fmt(totalAmt)}</div></div>
+          <div style="text-align:right;"><div class="pstat-label">المحصّل</div><div class="pstat-val" style="color:var(--green)">${fmt(totalPaid)}</div></div>
+          <div style="text-align:right;"><div class="pstat-label">المتبقي</div><div class="pstat-val" style="color:${totalRemaining>0?'var(--red)':'var(--green)'}">${fmt(totalRemaining)}</div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderGlobalSuppliers() {
+    const el = document.getElementById('global-suppliers-list');
+    if (!el) return;
+    const q = (document.getElementById('global-supplier-search')?.value || '').trim();
+    let list = getAllSuppliersFromProjects();
+    if (q) list = list.filter(s => smartMatch(s.name + ' ' + s.projects.map(p => p.project.name).join(' '), q));
+
+    if (!list.length) {
+      el.innerHTML = `<div class="empty-state">${q ? 'لا توجد نتائج.' : 'لا يوجد موردون بعد. أضف موردين من داخل المشاريع.'}</div>`;
+      return;
+    }
+
+    el.innerHTML = list.map(supplier => {
+      const totalAmt = supplier.projects.reduce((s, p) => s + Number(p.entry.total||0), 0);
+      const totalPaid = supplier.projects.reduce((s, p) => s + (p.entry.payments||[]).reduce((s2,pm) => s2+Number(pm.amount),0), 0);
+      const totalRemaining = Math.max(0, totalAmt - totalPaid);
+
+      return `<div class="project-item" style="cursor:pointer" onclick="openGlobalSupplierModal('${supplier.name.replace(/'/g,"\'")}')">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
+          <div style="text-align:left">
+            <div style="font-size:12px;color:var(--text3);">${supplier.projects.length} مشروع</div>
+            ${totalRemaining > 0
+              ? `<div style="font-size:13px;color:var(--amber);font-weight:700;">متبقي له: ${fmt(totalRemaining)}</div>`
+              : `<div style="font-size:12px;color:var(--green);">✓ مسوّى</div>`}
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:15px;font-weight:700;">${supplier.name}</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;">
+              ${supplier.projects.map(p => `<span style="background:var(--surface2);padding:2px 8px;border-radius:20px;font-size:11px;">${p.project.name}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="project-stats" style="margin-top:10px;">
+          <div style="text-align:right;"><div class="pstat-label">الإجمالي</div><div class="pstat-val">${fmt(totalAmt)}</div></div>
+          <div style="text-align:right;"><div class="pstat-label">المدفوع</div><div class="pstat-val" style="color:var(--red)">${fmt(totalPaid)}</div></div>
+          <div style="text-align:right;"><div class="pstat-label">المتبقي له</div><div class="pstat-val" style="color:${totalRemaining>0?'var(--amber)':'var(--green)'}">${fmt(totalRemaining)}</div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function buildClientDetailHTML(clientData) {
+    let html = '';
+    let grandTotal = 0, grandPaid = 0;
+
+    clientData.projects.forEach(({ project: p, entry: c }) => {
+      const payments = c.payments || [];
+      const paidTotal = payments.reduce((s, pm) => s + Number(pm.amount), 0);
+      const remaining = Math.max(0, Number(c.total||0) - paidTotal);
+      grandTotal += Number(c.total||0);
+      grandPaid += paidTotal;
+
+      html += `<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span style="font-size:12px;color:var(--text3);">${p.status}</span>
+          </div>
+          <div style="font-size:14px;font-weight:700;cursor:pointer;color:var(--accent);" onclick="closeModal('global-client');openProjectDetail('${p.id}')">${p.name} ←</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:${payments.length?'10px':'0'};">
+          <div><div class="pstat-label">الإجمالي</div><div class="pstat-val">${fmt(c.total||0)}</div></div>
+          <div><div class="pstat-label">المحصّل</div><div class="pstat-val" style="color:var(--green)">${fmt(paidTotal)}</div></div>
+          <div><div class="pstat-label">المتبقي</div><div class="pstat-val" style="color:${remaining>0?'var(--red)':'var(--green)'}">${remaining>0?fmt(remaining):'✓ مسدد'}</div></div>
+        </div>
+        ${payments.length ? `
+          <div style="border-top:1px solid var(--border);padding-top:8px;">
+            <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">الدفعات (${payments.length})</div>
+            ${payments.map(pm => `
+              <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px;">
+                <span style="color:var(--text3)">${fmtDate(pm.date)} — ${pm.by||''}</span>
+                <span style="color:var(--green);font-weight:700">${fmt(pm.amount)}</span>
+              </div>`).join('')}
+          </div>` : ''}
+      </div>`;
+    });
+
+    const grandRemaining = Math.max(0, grandTotal - grandPaid);
+    html = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;background:var(--surface2);border-radius:var(--radius-sm);padding:12px;">
+      <div><div class="pstat-label">إجمالي كل المشاريع</div><div class="pstat-val">${fmt(grandTotal)}</div></div>
+      <div><div class="pstat-label">إجمالي المحصّل</div><div class="pstat-val" style="color:var(--green)">${fmt(grandPaid)}</div></div>
+      <div><div class="pstat-label">إجمالي المتبقي</div><div class="pstat-val" style="color:${grandRemaining>0?'var(--red)':'var(--green)'}">${grandRemaining>0?fmt(grandRemaining):'✓ مسدد'}</div></div>
+    </div>` + html;
+
+    return html;
+  }
+
+  function buildSupplierDetailHTML(supplierData) {
+    let html = '';
+    let grandTotal = 0, grandPaid = 0;
+
+    supplierData.projects.forEach(({ project: p, entry: s }) => {
+      const payments = s.payments || [];
+      const paidTotal = payments.reduce((s2, pm) => s2 + Number(pm.amount), 0);
+      const remaining = Math.max(0, Number(s.total||0) - paidTotal);
+      grandTotal += Number(s.total||0);
+      grandPaid += paidTotal;
+
+      html += `<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:12px;color:var(--text3);">${s.category||''} · ${p.status}</span>
+          <div style="font-size:14px;font-weight:700;cursor:pointer;color:var(--accent);" onclick="closeModal('global-supplier');openProjectDetail('${p.id}')">${p.name} ←</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:${payments.length?'10px':'0'};">
+          <div><div class="pstat-label">الإجمالي</div><div class="pstat-val">${fmt(s.total||0)}</div></div>
+          <div><div class="pstat-label">المدفوع</div><div class="pstat-val" style="color:var(--red)">${fmt(paidTotal)}</div></div>
+          <div><div class="pstat-label">المتبقي له</div><div class="pstat-val" style="color:${remaining>0?'var(--amber)':'var(--green)'}">${remaining>0?fmt(remaining):'✓ مسوّى'}</div></div>
+        </div>
+        ${payments.length ? `
+          <div style="border-top:1px solid var(--border);padding-top:8px;">
+            <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">الدفعات (${payments.length})</div>
+            ${payments.map(pm => `
+              <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px;">
+                <span style="color:var(--text3)">${fmtDate(pm.date)} — ${pm.by||''}</span>
+                <span style="color:var(--red);font-weight:700">${fmt(pm.amount)}</span>
+              </div>`).join('')}
+          </div>` : ''}
+      </div>`;
+    });
+
+    const grandRemaining = Math.max(0, grandTotal - grandPaid);
+    html = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;background:var(--surface2);border-radius:var(--radius-sm);padding:12px;">
+      <div><div class="pstat-label">إجمالي كل المشاريع</div><div class="pstat-val">${fmt(grandTotal)}</div></div>
+      <div><div class="pstat-label">إجمالي المدفوع</div><div class="pstat-val" style="color:var(--red)">${fmt(grandPaid)}</div></div>
+      <div><div class="pstat-label">إجمالي المتبقي له</div><div class="pstat-val" style="color:${grandRemaining>0?'var(--amber)':'var(--green)'}">${grandRemaining>0?fmt(grandRemaining):'✓ مسوّى'}</div></div>
+    </div>` + html;
+
+    return html;
+  }
+
+  function openGlobalClientModal(name) {
+    const all = getAllClientsFromProjects();
+    const client = all.find(c => c.name === name);
+    if (!client) return;
+    currentGlobalClient = client;
+    document.getElementById('global-client-modal-title').textContent = `العميل: ${name}`;
+    document.getElementById('global-client-content').innerHTML = buildClientDetailHTML(client);
+    document.getElementById('modal-global-client').classList.add('open');
+  }
+
+  function openGlobalSupplierModal(name) {
+    const all = getAllSuppliersFromProjects();
+    const supplier = all.find(s => s.name === name);
+    if (!supplier) return;
+    currentGlobalSupplier = supplier;
+    document.getElementById('global-supplier-modal-title').textContent = `المورد: ${name}`;
+    document.getElementById('global-supplier-content').innerHTML = buildSupplierDetailHTML(supplier);
+    document.getElementById('modal-global-supplier').classList.add('open');
+  }
+
+  // ===== PDF/Excel للعميل الشامل =====
+  async function exportGlobalClientPDF() {
+    const client = currentGlobalClient;
+    if (!client) return;
+    let grandTotal = 0, grandPaid = 0;
+
+    let html = pdfWrapStart('كشف حساب عميل شامل');
+    html += `<div style="font-size:22px;font-weight:700;margin-bottom:4px;">${client.name}</div>`;
+    html += `<div style="font-size:13px;color:#888;margin-bottom:16px;">${client.projects.length} مشروع</div>`;
+    html += `<div style="height:1px;background:#ddd;margin-bottom:16px;"></div>`;
+
+    client.projects.forEach(({ project: p, entry: c }) => {
+      const payments = c.payments || [];
+      const paidTotal = payments.reduce((s, pm) => s + Number(pm.amount), 0);
+      const remaining = Math.max(0, Number(c.total||0) - paidTotal);
+      grandTotal += Number(c.total||0);
+      grandPaid += paidTotal;
+
+      html += `<div style="font-weight:700;color:#555;margin:14px 0 8px;">${p.name}</div>`;
+      html += rowHtml('الإجمالي', fmt(c.total||0));
+      html += rowHtml('المحصّل', `<span style="color:#2ecc8a">${fmt(paidTotal)}</span>`);
+      html += rowHtml('المتبقي', `<span style="color:${remaining>0?'#e85555':'#2ecc8a'}">${remaining>0?fmt(remaining):'✓ مسدد'}</span>`);
+
+      if (payments.length) {
+        html += `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;margin-bottom:4px;">
+          <thead><tr style="background:#f7f7f9;"><th style="padding:5px;text-align:right;">التاريخ</th><th style="padding:5px;text-align:right;">المبلغ</th><th style="padding:5px;text-align:right;">بواسطة</th></tr></thead><tbody>`;
+        payments.forEach(pm => {
+          html += `<tr><td style="padding:5px;border-bottom:1px solid #eee;">${fmtDate(pm.date)}</td><td style="padding:5px;border-bottom:1px solid #eee;color:#2ecc8a;font-weight:700;">${fmt(pm.amount)}</td><td style="padding:5px;border-bottom:1px solid #eee;color:#888;">${pm.by||''}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+      }
+    });
+
+    const grandRemaining = Math.max(0, grandTotal - grandPaid);
+    html += `<div style="height:2px;background:#e8b84b;margin:20px 0;"></div>`;
+    html += rowHtml('إجمالي كل المشاريع', fmt(grandTotal));
+    html += rowHtml('إجمالي المحصّل', `<strong style="color:#2ecc8a">${fmt(grandPaid)}</strong>`);
+    html += rowHtml('إجمالي المتبقي', `<strong style="color:${grandRemaining>0?'#e85555':'#2ecc8a'};font-size:18px;">${grandRemaining>0?fmt(grandRemaining):'✓ مسدد بالكامل'}</strong>`);
+    html += pdfWrapEnd();
+    await renderHtmlToPdf(html, `client-${client.name}-all-projects.pdf`);
+  }
+
+  function exportGlobalClientExcel() {
+    const client = currentGlobalClient;
+    if (!client) return;
+    const wb = XLSX.utils.book_new();
+    const rows = [];
+    client.projects.forEach(({ project: p, entry: c }) => {
+      const payments = c.payments || [];
+      if (!payments.length) {
+        rows.push({ 'المشروع': p.name, 'الإجمالي': Number(c.total||0), 'المحصّل': 0, 'المتبقي': Number(c.total||0), 'تاريخ الدفعة': '', 'مبلغ الدفعة': '', 'بواسطة': '' });
+      } else {
+        payments.forEach(pm => {
+          const paidTotal = payments.reduce((s, x) => s + Number(x.amount), 0);
+          rows.push({ 'المشروع': p.name, 'الإجمالي': Number(c.total||0), 'المحصّل': paidTotal, 'المتبقي': Math.max(0, Number(c.total||0) - paidTotal), 'تاريخ الدفعة': pm.date, 'مبلغ الدفعة': Number(pm.amount), 'بواسطة': pm.by||'' });
+        });
+      }
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'تعاملات العميل');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(exportInfoSheet()), 'معلومات');
+    XLSX.writeFile(wb, `client-${client.name}.xlsx`);
+  }
+
+  async function exportGlobalSupplierPDF() {
+    const supplier = currentGlobalSupplier;
+    if (!supplier) return;
+    let grandTotal = 0, grandPaid = 0;
+
+    let html = pdfWrapStart('كشف حساب مورد شامل');
+    html += `<div style="font-size:22px;font-weight:700;margin-bottom:4px;">${supplier.name}</div>`;
+    html += `<div style="font-size:13px;color:#888;margin-bottom:16px;">${supplier.projects.length} مشروع</div>`;
+    html += `<div style="height:1px;background:#ddd;margin-bottom:16px;"></div>`;
+
+    supplier.projects.forEach(({ project: p, entry: s }) => {
+      const payments = s.payments || [];
+      const paidTotal = payments.reduce((s2, pm) => s2 + Number(pm.amount), 0);
+      const remaining = Math.max(0, Number(s.total||0) - paidTotal);
+      grandTotal += Number(s.total||0);
+      grandPaid += paidTotal;
+
+      html += `<div style="font-weight:700;color:#555;margin:14px 0 8px;">${p.name} ${s.category ? `(${s.category})` : ''}</div>`;
+      html += rowHtml('الإجمالي', fmt(s.total||0));
+      html += rowHtml('المدفوع', `<span style="color:#e85555">${fmt(paidTotal)}</span>`);
+      html += rowHtml('المتبقي له', `<span style="color:${remaining>0?'#e8b84b':'#2ecc8a'}">${remaining>0?fmt(remaining):'✓ مسوّى'}</span>`);
+
+      if (payments.length) {
+        html += `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;margin-bottom:4px;">
+          <thead><tr style="background:#f7f7f9;"><th style="padding:5px;text-align:right;">التاريخ</th><th style="padding:5px;text-align:right;">المبلغ</th><th style="padding:5px;text-align:right;">بواسطة</th></tr></thead><tbody>`;
+        payments.forEach(pm => {
+          html += `<tr><td style="padding:5px;border-bottom:1px solid #eee;">${fmtDate(pm.date)}</td><td style="padding:5px;border-bottom:1px solid #eee;color:#e85555;font-weight:700;">${fmt(pm.amount)}</td><td style="padding:5px;border-bottom:1px solid #eee;color:#888;">${pm.by||''}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+      }
+    });
+
+    const grandRemaining = Math.max(0, grandTotal - grandPaid);
+    html += `<div style="height:2px;background:#e8b84b;margin:20px 0;"></div>`;
+    html += rowHtml('إجمالي كل المشاريع', fmt(grandTotal));
+    html += rowHtml('إجمالي المدفوع', `<strong style="color:#e85555">${fmt(grandPaid)}</strong>`);
+    html += rowHtml('إجمالي المتبقي له', `<strong style="color:${grandRemaining>0?'#e8b84b':'#2ecc8a'};font-size:18px;">${grandRemaining>0?fmt(grandRemaining):'✓ تمت التسوية'}</strong>`);
+    html += pdfWrapEnd();
+    await renderHtmlToPdf(html, `supplier-${supplier.name}-all-projects.pdf`);
+  }
+
+  function exportGlobalSupplierExcel() {
+    const supplier = currentGlobalSupplier;
+    if (!supplier) return;
+    const wb = XLSX.utils.book_new();
+    const rows = [];
+    supplier.projects.forEach(({ project: p, entry: s }) => {
+      const payments = s.payments || [];
+      if (!payments.length) {
+        rows.push({ 'المشروع': p.name, 'النوع': s.category||'', 'الإجمالي': Number(s.total||0), 'المدفوع': 0, 'المتبقي له': Number(s.total||0), 'تاريخ الدفعة': '', 'مبلغ الدفعة': '', 'بواسطة': '' });
+      } else {
+        payments.forEach(pm => {
+          const paidTotal = payments.reduce((s2, x) => s2 + Number(x.amount), 0);
+          rows.push({ 'المشروع': p.name, 'النوع': s.category||'', 'الإجمالي': Number(s.total||0), 'المدفوع': paidTotal, 'المتبقي له': Math.max(0, Number(s.total||0) - paidTotal), 'تاريخ الدفعة': pm.date, 'مبلغ الدفعة': Number(pm.amount), 'بواسطة': pm.by||'' });
+        });
+      }
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'تعاملات المورد');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(exportInfoSheet()), 'معلومات');
+    XLSX.writeFile(wb, `supplier-${supplier.name}.xlsx`);
   }
 
   // ===== استيراد Excel الذكي للمشروع =====

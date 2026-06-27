@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Artash</title>
-  <meta name="app-version" content="28" />
+  <meta name="app-version" content="29" />
   <meta name="description" content="نظام تتبع مالي وفواتير لشركات المقاولات" />
   <meta name="theme-color" content="#1a1a2e" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -901,6 +901,23 @@
     <div class="modal-actions">
       <button class="btn btn-accent" id="excel-import-confirm-btn" style="display:none">تأكيد</button>
       <button class="btn" onclick="closeModal('excel-import')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة تأكيد حذف المشروع بكلمة المرور -->
+<div class="modal-overlay" id="modal-delete-project">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title" style="color:var(--red);">⚠️ تأكيد حذف المشروع</div>
+    <div id="delete-project-info" style="background:var(--red-bg);border:1px solid rgba(232,85,85,0.3);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:13px;color:var(--red);line-height:1.8;"></div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>أدخل كلمة مرورك للتأكيد *</label>
+      <input type="password" id="delete-project-password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')confirmDeleteProject()" />
+    </div>
+    <div id="delete-project-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="delete-project-confirm-btn" onclick="confirmDeleteProject()">تأكيد الحذف نهائياً</button>
+      <button class="btn" onclick="closeModal('delete-project')">إلغاء</button>
     </div>
   </div>
 </div>
@@ -5375,6 +5392,13 @@
       const item = state[type].find(i => i.id === id);
       if (!item || !currentUserProjects.includes(item.project)) return;
     }
+    // Projects require password confirmation — route to the secure delete flow
+    if (type === 'projects') {
+      // Open the project detail first then trigger password modal
+      openProjectDetail(id);
+      setTimeout(() => deleteProjectFromPage(), 300);
+      return;
+    }
     if (!confirm('هل تريد حذف هذا العنصر؟ يمكن استرجاعه لاحقًا من سلة المحذوفات خلال 30 يومًا.')) return;
     const item = state[type].find(i => i.id === id);
     const typeLabels = { invoices: 'فاتورة', expenses: 'مصروف', projects: 'مشروع' };
@@ -5382,25 +5406,88 @@
     if (item) moveToTrash(type, item, `${typeLabels[type] || type}: ${itemLabel}`);
     state[type] = state[type].filter(i => i.id !== id);
     logActivity(type === 'invoices' ? 'invoice' : type === 'expenses' ? 'expense' : 'project', 'delete', `حذف ${typeLabels[type] || type}${itemLabel ? ' "' + itemLabel + '"' : ''}`);
-    if (type === 'projects') deleteProjectDoc(id);
-    else persist();
+    persist();
     renderAll();
     refreshProjectDetailIfOpen();
   }
 
-  // Deletes the project currently open in the full-page view, then returns to the projects list.
+  // Deletes the project currently open in the full-page view — requires password confirmation
+  let pendingDeleteProjectId = null;
+
   function deleteProjectFromPage() {
     const id = document.getElementById('prj-edit-id').value;
+    if (!id || !isAdminOrIT()) return;
+    const p = state.projects.find(x => x.id === id);
+    if (!p) return;
+
+    pendingDeleteProjectId = id;
+
+    // Show info about what will be deleted
+    const invCount = state.invoices.filter(i => i.project === p.name).length;
+    const expCount = state.expenses.filter(e => e.project === p.name).length;
+    const clientCount = (p.projectClients || []).length;
+    const supplierCount = (p.projectSuppliers || []).length;
+
+    document.getElementById('delete-project-info').innerHTML = `
+      سيتم حذف مشروع <strong>"${p.name}"</strong> ونقله لسلة المحذوفات.<br>
+      يشمل هذا المشروع:
+      <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:8px;">
+        ${invCount > 0 ? `<span style="background:var(--red-bg);padding:2px 8px;border-radius:20px;">${invCount} فاتورة</span>` : ''}
+        ${expCount > 0 ? `<span style="background:var(--red-bg);padding:2px 8px;border-radius:20px;">${expCount} مصروف</span>` : ''}
+        ${clientCount > 0 ? `<span style="background:var(--red-bg);padding:2px 8px;border-radius:20px;">${clientCount} عميل</span>` : ''}
+        ${supplierCount > 0 ? `<span style="background:var(--red-bg);padding:2px 8px;border-radius:20px;">${supplierCount} مورد</span>` : ''}
+        ${invCount+expCount+clientCount+supplierCount === 0 ? '<span>لا توجد بيانات مرتبطة</span>' : ''}
+      </div>
+      <div style="margin-top:8px;">يمكن استرجاعه خلال 30 يومًا من سلة المحذوفات.</div>
+    `;
+    document.getElementById('delete-project-password').value = '';
+    document.getElementById('delete-project-err').innerHTML = '';
+    document.getElementById('modal-delete-project').classList.add('open');
+    setTimeout(() => document.getElementById('delete-project-password').focus(), 100);
+  }
+
+  async function confirmDeleteProject() {
+    const id = pendingDeleteProjectId;
     if (!id) return;
-    if (!isAdminOrIT()) return;
-    if (!confirm('هل تريد حذف هذا المشروع؟ يمكن استرجاعه لاحقًا من سلة المحذوفات خلال 30 يومًا.')) return;
+
+    const password = document.getElementById('delete-project-password').value;
+    const errEl = document.getElementById('delete-project-err');
+    errEl.innerHTML = '';
+
+    if (!password) {
+      errEl.innerHTML = '<div class="error-msg">يرجى إدخال كلمة المرور.</div>';
+      return;
+    }
+
+    const btn = document.getElementById('delete-project-confirm-btn');
+    btn.disabled = true;
+    btn.textContent = 'جارٍ التحقق…';
+
+    try {
+      // Re-authenticate with Firebase Auth — unbypassable verification
+      const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, password);
+      await currentUser.reauthenticateWithCredential(credential);
+    } catch(e) {
+      errEl.innerHTML = '<div class="error-msg">كلمة المرور غير صحيحة. لم يتم حذف أي شيء.</div>';
+      btn.disabled = false;
+      btn.textContent = 'تأكيد الحذف نهائياً';
+      return;
+    }
+
+    // Password correct — proceed with deletion
     const p = state.projects.find(x => x.id === id);
     if (p) moveToTrash('projects', p, `مشروع: ${p.name}`);
     state.projects = state.projects.filter(x => x.id !== id);
-    logActivity('project', 'delete', `حذف مشروع "${p ? p.name : ''}"`);
-    deleteProjectDoc(id);
+    logActivity('project', 'delete', `🗑️ حذف مشروع "${p ? p.name : ''}" — تم التحقق بكلمة المرور`);
+    persist();
     renderAll();
+
+    btn.disabled = false;
+    btn.textContent = 'تأكيد الحذف نهائياً';
+    pendingDeleteProjectId = null;
+    closeModal('delete-project');
     closeProjectDetailPage();
+    showToast(`تم حذف مشروع "${p?.name || ''}" ونقله لسلة المحذوفات.`, 'success');
   }
 
   // ===== عملاء وموردو المشروع (خاصون بكل مشروع) =====

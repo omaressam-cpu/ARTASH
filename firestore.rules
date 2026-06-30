@@ -6,6 +6,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function userDocExists() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
     function myData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
@@ -15,90 +20,63 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+      return userDocExists()
         && (myRole() == 'admin' || myRole() == 'it');
     }
 
     function isIT() {
-      return isSignedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+      return userDocExists()
         && myRole() == 'it';
     }
 
     function isAccountant() {
-      return isSignedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+      return userDocExists()
         && myRole() == 'accountant';
     }
 
     function isEngineer() {
-      return isSignedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+      return userDocExists()
         && myRole() == 'engineer';
     }
 
     function isNotAccountant() {
-      return isSignedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+      return userDocExists()
         && myRole() != 'accountant';
     }
 
-    // ===== Users =====
     match /users/{userId} {
-      // Any signed-in user can read profiles (needed for project members view)
       allow read: if isSignedIn();
-
-      // Only admin/IT can create or fully update user profiles
-      allow create: if isAdmin();
-      allow delete: if isAdmin();
-
-      // Admin/IT can update any field
-      // Any user can update ONLY their own lastLogin + knownDevices (login tracking)
+      allow create, delete: if isAdmin();
       allow update: if isAdmin()
-        || (isSignedIn() && request.auth.uid == userId
-            && request.resource.data.diff(resource.data).affectedKeys()
-               .hasOnly(['lastLogin', 'knownDevices']));
+        || (
+          isSignedIn()
+          && request.auth.uid == userId
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['lastLogin', 'knownDevices'])
+        );
     }
 
-    // ===== Main company data =====
-    // invoices, expenses, projects, quotes, partners, trash — all in one doc
     match /company/main {
       allow read: if isSignedIn();
-      // Accountants are view-only; everyone else can write
       allow write: if isNotAccountant();
     }
 
-    // ===== Company settings =====
-    // logo, maintenance mode, company info, address, threshold
     match /company/settings {
       allow read: if isSignedIn();
-      // Only admin/IT can change settings
       allow write: if isAdmin();
     }
 
-    // ===== Backups =====
-    // Full snapshots of company data — admin/IT only
     match /backups/{backupId} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
+      allow read, write: if isAdmin();
     }
 
-    // ===== Activity log =====
-    // Append-only for non-accountants; read only by admin/IT
-    // System can also write (for lockout events, before auth)
     match /activity/{entryId} {
       allow read: if isAdmin();
       allow create: if isNotAccountant()
         || request.resource.data.by == 'النظام';
-      // Never allow update or delete — log is immutable
       allow update, delete: if false;
     }
 
-    // ===== Login lockout tracking =====
-    // Must be open to unauthenticated access — user isn't signed in during login attempts
-    // Only stores: failedCount, lockedUntil, permanentlyLocked, email — no financial data
-    // Rate limiting is handled at app level; Firebase Auth provides server-side protection
     match /loginLockouts/{email} {
       allow read, write: if true;
     }
